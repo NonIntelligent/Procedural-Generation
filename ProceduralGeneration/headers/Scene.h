@@ -8,6 +8,9 @@ class Scene {
 	int width = 1280;
 	int height = 720;
 
+	const int MAP_SIZE = 65;
+	unsigned long long seed = 123456789;
+
 	void setupLights();
 
 public:
@@ -16,6 +19,8 @@ public:
 	~Scene();
 
 	void init();
+
+	void generateScene();
 
 	void deletePrimative();
 	void deleteAllObjects();

@@ -57,16 +57,16 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);GLEW_STATIC</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)headers;$(SolutionDir)libraries\SDL2-2.0.16\include;$(SolutionDir)libraries\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)headers\;$(SolutionDir)libraries\glm;$(SolutionDir)libraries\glew-2.1.0\include;$(SolutionDir)libraries\glfw-3.3.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libraries\SDL2-2.0.16\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)libraries\glew-2.1.0\lib\Release\x64\;$(SolutionDir)libraries\glfw-3.3.2\lib-vc2019\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glew32s.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -75,33 +75,47 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);GLEW_STATIC</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)headers;$(SolutionDir)libraries\SDL2-2.0.16\include;$(SolutionDir)libraries\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)headers\;$(SolutionDir)libraries\glm\;$(SolutionDir)libraries\glew-2.1.0\include\;$(SolutionDir)libraries\glfw-3.3.2\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libraries\SDL2-2.0.16\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)libraries\glew-2.1.0\lib\Release\x64\;$(SolutionDir)libraries\glfw-3.3.2\lib-vc2019\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glew32s.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\Generator.cpp" />
+    <ClCompile Include="headers\Vendor\stb_image.cpp" />
+    <ClCompile Include="src\Graphics\Texture.cpp" />
+    <ClCompile Include="headers\Vendor\ErrorLogger.cpp" />
+    <ClCompile Include="src\Graphics\Shader.cpp" />
+    <ClCompile Include="src\Graphics\VertexObjects.cpp" />
+    <ClCompile Include="src\Procedural.cpp" />
     <ClCompile Include="headers\Vendor\Algorithms.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Scene.cpp" />
+    <ClCompile Include="src\Generators\Terrain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="headers\Generator.h" />
+    <ClInclude Include="headers\Graphics\Shader.h" />
+    <ClInclude Include="headers\Graphics\Texture.h" />
+    <ClInclude Include="headers\Graphics\VertexObjects.h" />
+    <ClInclude Include="headers\Procedural.h" />
+    <ClInclude Include="headers\Generators\GenerateAlgorithms.h" />
     <ClInclude Include="headers\macros\Definitions.h" />
     <ClInclude Include="headers\macros\Macro_chrono.h" />
     <ClInclude Include="headers\Scene.h" />
     <ClInclude Include="headers\Vendor\Algorithms.h" />
+    <ClInclude Include="headers\Vendor\ErrorLogger.h" />
     <ClInclude Include="headers\Vendor\OBJ_Loader.h" />
+    <ClInclude Include="headers\Vendor\stb_image.h" />
+    <ClInclude Include="headers\Vendor\Vertex.h" />
+    <ClInclude Include="headers\Generators\Terrain.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

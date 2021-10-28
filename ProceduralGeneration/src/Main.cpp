@@ -1,13 +1,13 @@
-#include "Generator.h"
+#include "Procedural.h"
 
 #include <memory>
 
 int main(int argc, char* args[]) {
-	std::unique_ptr<Generator> generator = std::make_unique<Generator>();
+	std::unique_ptr<Procedural> procedural = std::make_unique<Procedural>();
 
-	if(!generator->init()) return -1;
+	if(!procedural->init()) return -1;
 
-	generator->mainLoop();
+	procedural->mainLoop();
 
 	return 0;
 }
