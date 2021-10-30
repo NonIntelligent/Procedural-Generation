@@ -4,6 +4,7 @@
 #include "Graphics/Shader.h"
 #include "Generators/Terrain.h"
 #include "Graphics/Texture.h"
+#include "macros/Definitions.h"
 
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
@@ -33,25 +34,36 @@ class Procedural {
 	double frameSamples[60] = {0.0};
 	int frameSampleIndex = 0;
 	std::vector<std::thread> threads;
+	int keys[GLFW_KEY_LAST] = {0};
 
 	// Objects
 	Scene scene;
-	Terrain terrain = Terrain(5);
+	Terrain terrain = Terrain(65, 123456789);
 	std::unordered_map<std::string, Shader> shaders;
 	std::vector<Texture> textures;
 
 	// Camera options
-	vec3 cameraPos;
-	vec3 lookAtDir;
-	float horizontalAngle, verticalAngle, g_fov;
+	GLuint u_cameraID;
+	vec3 cameraPos = {0.f, 0.f, 10.f};
+	vec3 lookAtDir = {0.f, 0.f, -1.f};
+	const vec3 UP = {0.f, 1.f, 0.f};
+	vec3 xaxis;
+	vec3 yaxis;
+	vec3 zaxis;
+	float horizontalAngle = PI_f, verticalAngle = 0.f;
 	const float cameraSpeed = 2.f;
-	mat4 projMat;
+	mat4 perspectiveMat = mat4(0.f);
+	mat4 lookAtMat = mat4(0.f);
 
 	bool initGLFW();
 	void setupWindowHints();
+	void setupGlobalUniforms();
 
+	void updateCameraUniform();
 	void updateKeyboardInput();
 	void updateMouseInput();
+
+	void lookAtCustom();
 
 public:
 	Procedural();
@@ -68,7 +80,10 @@ public:
 
 	Texture findTexture(const std::string& name);
 
+	void updateCamera();
 	void updateShaderUniform(Shader* shader, const std::vector<ShaderUniform>& uniforms);
 
 	void mainLoop();
+
+	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 };

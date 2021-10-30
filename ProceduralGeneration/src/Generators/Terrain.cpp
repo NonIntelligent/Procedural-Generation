@@ -1,22 +1,18 @@
 #include "Generators/Terrain.h"
-#include "GL/glew.h"
+#include "Generators/GenerateAlgorithms.h"
 
+#include <GL/glew.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/matrix.hpp>
 #include <glm/vec3.hpp>
 
-Terrain::Terrain(int mapSize) : MAP_SIZE(mapSize){
+Terrain::Terrain(int mapSize, unsigned int seed) : MAP_SIZE(mapSize), SEED(seed) {
 	vertices = new Vertex[mapSize * mapSize];
 
 	int numStripsRequired = mapSize - 1;
 	int verticesPerStrip = mapSize * 2;
 
 	terrainIndexData = new unsigned int[numStripsRequired * verticesPerStrip + numStripsRequired];
-
-	/*terrainIndexData = new unsigned int* [numStripsRequired];
-	for (int i = 0; i < numStripsRequired; i++) {
-		terrainIndexData[i] = new unsigned int[verticesPerStrip];
-	}*/
 
 	// Initialise terrain - set values in the height map to 0
 	terrainMap = new float* [MAP_SIZE];
@@ -36,7 +32,30 @@ Terrain::~Terrain() {
 }
 
 void Terrain::init() {
-	// Initialise vertex array
+	int numStrips = MAP_SIZE - 1;
+	int verticesPerStrip = MAP_SIZE * 2;
+
+	// Apply diamond square algorithm here
+	Generate::setRandomSeed(SEED);
+	float heightMultiplier = 3.f;
+
+	float h1 = Generate::random();
+	float h2 = Generate::random();
+	float h3 = Generate::random();
+	float h4 = Generate::random();
+
+	// Initialise corners for algorithm
+	terrainMap[0][0] = h1 * heightMultiplier;
+	terrainMap[0][numStrips] = h2 * heightMultiplier;
+	terrainMap[numStrips][0] = h3 * heightMultiplier;
+	terrainMap[numStrips][numStrips] = h4 * heightMultiplier;
+
+	Generate::DiamondSquare(terrainMap, MAP_SIZE, MAP_SIZE);
+
+	//////////////////////////////////////////////////////////
+
+
+	// Initialise vertex array with values from terrain map
 	int i = 0;
 
 	for(int z = 0; z < MAP_SIZE; z++) {
@@ -47,8 +66,6 @@ void Terrain::init() {
 		}
 	}
 
-	int numStrips = MAP_SIZE - 1;
-	int verticesPerStrip = MAP_SIZE * 2;
 
 	// Now build the index data 
 	i = 0;
@@ -88,20 +105,14 @@ void Terrain::init() {
 
 	ib = new IndexBuffer(&terrainIndexData[0], (MAP_SIZE - 1) * (MAP_SIZE * 2) + numStrips, GL_STATIC_DRAW);
 
-	ShaderUniform projMat;
-	projMat.name = "projMat";
-	projMat.dataMatrix = perspective(radians(60.0), 1280.0 / 720.0, 0.1, 100.0);
-	projMat.type = UniformType::MAT4;
-
 	mat4 modelView = mat4(1.f);
 	modelView = translate(modelView, vec3(-2.5f, -2.5f, -10.f));
 
 	ShaderUniform modelViewMat;
-	modelViewMat.name = "modelViewMat";
+	modelViewMat.name = "model";
 	modelViewMat.dataMatrix = modelView;
 	modelViewMat.type = UniformType::MAT4;
 
-	uniforms.push_back(projMat);
 	uniforms.push_back(modelViewMat);
 
 	va->unBind();

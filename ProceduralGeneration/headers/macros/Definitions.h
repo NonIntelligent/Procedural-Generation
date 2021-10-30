@@ -1,7 +1,7 @@
 #pragma once
 
-#define PI		3.14159265359
-#define PI_f	3.1415927f
+constexpr double PI = 3.141592653589793;
+constexpr float PI_f = 3.1415926f;
 
 inline double toRad(double degrees) {
 	return (degrees * PI) / 180;

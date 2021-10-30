@@ -1,15 +1,22 @@
 #version 420 core
 
-layout(location=0) in vec4 terrainCoords;
-layout(location=1) in vec4 terrainColors;
+layout(location=0) in vec3 terrainCoords;
+layout(location=1) in vec3 terrainColors;
 
-uniform mat4 projMat;
-uniform mat4 modelViewMat;
+layout(std140) uniform camera
+{
+	mat4 proj;
+	mat4 view;
+	vec3 viewPos;
+};
 
-flat out vec4 colorsExport;
+uniform mat4 model;
+
+flat out vec3 colorsExport;
 
 void main(void)
 {
-   gl_Position = projMat * modelViewMat * terrainCoords;
-   colorsExport = terrainColors;
+	vec4 pos = vec4(terrainCoords, 1.0);
+	gl_Position = proj * view * model * pos;
+	colorsExport = terrainColors;
 }

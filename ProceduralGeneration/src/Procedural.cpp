@@ -1,4 +1,5 @@
 #include "Procedural.h"
+#include "Vendor/ErrorLogger.h"
 
 #include <iostream>
 
@@ -9,6 +10,8 @@ void error_callback(int error, const char* description) {
 
 bool Procedural::initGLFW() {
 	glfwSetErrorCallback(&error_callback);
+
+	glfwTerminate();
 
 	if(!glfwInit()) {
 		std::cout << "GLFW could not initialize! " << std::endl;
@@ -25,8 +28,12 @@ bool Procedural::initGLFW() {
 		return false;
 	}
 
+
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(1);
+
+	glfwSetKeyCallback(window, &Procedural::key_callback);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	return true;
 }
 
@@ -37,39 +44,94 @@ void Procedural::setupWindowHints() {
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 }
 
+void Procedural::setupGlobalUniforms() {
+	GLCall(glGenBuffers(1, &u_cameraID));
+	GLCall(glBindBuffer(GL_UNIFORM_BUFFER, u_cameraID));
+	// 2 mat4 matrices and a vec3
+	GLCall(glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(mat4) + sizeof(vec3), NULL, GL_STATIC_DRAW));
+	GLCall(glBindBuffer(GL_UNIFORM_BUFFER, 0));
+
+	// Bind uniform buffer to a binding point 0, with the buffer object at offset 0 of size.
+	GLCall(glBindBufferRange(GL_UNIFORM_BUFFER, 0, u_cameraID, 0, 2 * sizeof(mat4) + sizeof(vec3)));
+
+	updateCameraUniform();
+}
+
+void Procedural::updateCameraUniform() {
+	GLCall(glBindBuffer(GL_UNIFORM_BUFFER, u_cameraID));
+
+	GLCall(glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(mat4), (float*) (&perspectiveMat[0]) ));
+
+	GLCall(glBufferSubData(GL_UNIFORM_BUFFER, sizeof(mat4), sizeof(mat4), (float*)(&lookAtMat[0]) ));
+
+	GLCall(glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(mat4), sizeof(vec3), (float*)(&cameraPos[0])));
+
+	GLCall(glBindBuffer(GL_UNIFORM_BUFFER, 0));
+}
+
 // used for camera movement
 vec3 movementDir = vec3(0);
-vec3 lightMovementDir = vec3(0);
+double mouseX = 0, mouseY = 0;
+double lastMouseX = 0, lastMouseY = 0;
 float deltaX = 0, deltaY = 0;
 bool stats = false;
 
 void Procedural::updateKeyboardInput() {
-
-	int stateW = glfwGetKey(window, GLFW_KEY_W);
-	int stateA = glfwGetKey(window, GLFW_KEY_A);
-	int stateS = glfwGetKey(window, GLFW_KEY_S);
-	int stateD = glfwGetKey(window, GLFW_KEY_D);
-
-	int stateUp = glfwGetKey(window, GLFW_KEY_SPACE);
-	int stateDown = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL);
-
-	movementDir.x = stateA == GLFW_PRESS ? -1.f : stateD == GLFW_PRESS ? 1.f : 0.f;
-	movementDir.y = stateDown == GLFW_PRESS ? -1.f : stateUp == GLFW_PRESS ? 1.f : 0.f;
-	movementDir.z = stateW == GLFW_PRESS ? -1.f : stateS == GLFW_PRESS ? 1.f : 0.f;
-
-	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-		glfwSetWindowShouldClose(window, GLFW_TRUE);
-	}
+	glfwPollEvents();
 }
 
 void Procedural::updateMouseInput() {
+	static bool firstMouse = true;
+	glfwGetCursorPos(window, &mouseX, &mouseY);
 
+	if (firstMouse) {
+		lastMouseX = mouseX;
+		lastMouseY = mouseY;
+		firstMouse = false;
+	}
+
+	// Calc offsets. Y is inverted due to different coordinate spaces.
+
+	deltaX = mouseX - lastMouseX;
+	deltaY = lastMouseY - mouseY;
+
+	lastMouseX = mouseX;
+	lastMouseY = mouseY;
+}
+
+void Procedural::lookAtCustom() {
+	vec3 xAxis;
+	vec3 zAxis;
+	vec3 yAxis;
+	vec3 dotPos;
+
+	zAxis = (cameraPos + lookAtDir) - cameraPos;
+	normalize(zAxis);
+
+	xAxis = normalize(cross(zAxis, UP));
+
+	yAxis = cross(xAxis, zAxis);
+
+	zAxis *= -1.f;
+
+	// Set global variables so that I can move along the directional axis
+	xaxis = xAxis;
+	yaxis = yAxis;
+	zaxis = zAxis;
+
+	dotPos.x = -dot(xAxis, cameraPos);
+	dotPos.y = -dot(yAxis, cameraPos);
+	dotPos.z = -dot(zAxis, cameraPos);
+
+	lookAtMat[0] = vec4(xAxis, 0);
+	lookAtMat[1] = vec4(yAxis, 0);
+	lookAtMat[2] = vec4(zAxis, 0);
+	lookAtMat[3] = vec4(0);
+	lookAtMat = transpose(lookAtMat);
+	lookAtMat[3] = vec4(dotPos, 1);
 }
 
 Procedural::Procedural() {
-	cameraPos = vec3(2.f, 0.f, 0.f);
-	lookAtDir = vec3(0.f, 0.f, -1.f);
-	g_fov = 40.f;
 	threads.reserve(threadCount);
 }
 
@@ -97,11 +159,17 @@ bool Procedural::init() {
 		return false;
 	}
 
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glPrimitiveRestartIndex(65535);
 	glEnable(GL_PRIMITIVE_RESTART);
 
-	projMat = perspective(radians(60.0), (double) scene.getWidth() / scene.getHeight(), 0.1, 100.0);
+	perspectiveMat = perspective(radians(60.0), (double) scene.getWidth() / scene.getHeight(), 0.1, 100.0);
+	lookAtCustom();
+
+	setupGlobalUniforms();
+	updateCameraUniform();
 
 	createShaders();
 
@@ -120,18 +188,24 @@ void Procedural::createShaders() {
 }
 
 void Procedural::createObjects(){
+	double start = glfwGetTime();
 	terrain.init();
+	double end = glfwGetTime();
+	std::cout << "Time taken to generate Terrain: " << (end - start) << " seconds" << std::endl;
 	terrain.setShaderName("terrain");
 }
 
 void Procedural::handleInputs() {
 	glfwPollEvents();
-
-	updateKeyboardInput();
+	updateMouseInput();
 }
 
 void Procedural::update() {
+	updateCamera();
 
+	lookAtCustom();
+
+	updateCameraUniform();
 }
 
 void Procedural::render() {
@@ -168,6 +242,44 @@ Texture Procedural::findTexture(const std::string& name) {
 	}
 
 	return texture;
+}
+
+void Procedural::updateCamera() {
+	
+	cameraPos += xaxis * movementDir.x * cameraSpeed * 0.0333f;
+	cameraPos += UP * movementDir.y * cameraSpeed * 0.0333f;
+	cameraPos += zaxis * movementDir.z * cameraSpeed * 0.0333f;
+
+	vec3 direction;
+
+	// Convert screen space offset to clip space.
+	double clipX = deltaX / scene.getWidth();
+	double clipY = deltaY / scene.getHeight();
+
+	horizontalAngle += toRadf(180.f * 1.f * clipX);
+	verticalAngle += toRadf(180.f * 1.f * clipY);
+
+	// Keeps angles within range of -2PI -> +2PI
+	// Absolutely no idea if this is better than 2 conditional branches/statements.
+	if (fabsf(horizontalAngle) >= 2 * PI_f) {
+		horizontalAngle = fmodf(horizontalAngle, PI_f);
+	}
+
+	// Limit how far you can look up/down to +85 and -75 degrees.
+	if (verticalAngle > 1.483f) {
+		verticalAngle = 1.483f;
+	}
+	else if (verticalAngle < -1.309f) {
+		verticalAngle = -1.309f;
+	}
+
+	// Direction vector in world coordinates.
+	direction.x = cosf(verticalAngle) * -sinf(horizontalAngle);
+	direction.y = sinf(verticalAngle);
+	direction.z = cosf(verticalAngle) * cosf(horizontalAngle);
+
+	// Set new target position from origin.
+	lookAtDir = direction;
 }
 
 void Procedural::updateShaderUniform(Shader* shader, const std::vector<ShaderUniform>& uniforms) {
@@ -322,5 +434,34 @@ void Procedural::mainLoop() {
 			timer += singleSecond;
 		}
 
+	}
+}
+
+void Procedural::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	switch (action) {
+	case GLFW_PRESS:
+		movementDir.x = key == GLFW_KEY_A ? -1 : key == GLFW_KEY_D ? 1 : movementDir.x;
+		movementDir.y = key == GLFW_KEY_LEFT_CONTROL ? -1 : key == GLFW_KEY_SPACE ? 1 : movementDir.y;
+		movementDir.z = key == GLFW_KEY_W ? -1 : key == GLFW_KEY_S ? 1 : movementDir.z;
+
+		if (key == GLFW_KEY_ESCAPE) {
+			glfwSetWindowShouldClose(window, GLFW_TRUE);
+		}
+
+		break;
+
+	case GLFW_RELEASE:
+		if (key == GLFW_KEY_A || key == GLFW_KEY_D) {
+			movementDir.x = 0;
+		}
+		if (key == GLFW_KEY_LEFT_CONTROL || key == GLFW_KEY_SPACE) {
+			movementDir.y = 0;
+		}
+		if (key == GLFW_KEY_W || key == GLFW_KEY_S) {
+			movementDir.z = 0;
+		}
+		break;
+	default:
+		break;
 	}
 }

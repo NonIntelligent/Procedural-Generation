@@ -60,13 +60,13 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);GLEW_STATIC</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)headers\;$(SolutionDir)libraries\glm;$(SolutionDir)libraries\glew-2.1.0\include;$(SolutionDir)libraries\glfw-3.3.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)headers\;$(SolutionDir)libraries\glm\;$(SolutionDir)libraries\glew-2.1.0\include\;$(SolutionDir)libraries\glfw-3.3.5\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libraries\glew-2.1.0\lib\Release\x64\;$(SolutionDir)libraries\glfw-3.3.2\lib-vc2019\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glew32s.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)libraries\glew-2.1.0\lib\Release\x64\;$(SolutionDir)libraries\glfw-3.3.5\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glew32s.lib;glfw3_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -78,18 +78,19 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);GLEW_STATIC</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)headers\;$(SolutionDir)libraries\glm\;$(SolutionDir)libraries\glew-2.1.0\include\;$(SolutionDir)libraries\glfw-3.3.2\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)headers\;$(SolutionDir)libraries\glm\;$(SolutionDir)libraries\glew-2.1.0\include\;$(SolutionDir)libraries\glfw-3.3.5\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libraries\glew-2.1.0\lib\Release\x64\;$(SolutionDir)libraries\glfw-3.3.2\lib-vc2019\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)libraries\glew-2.1.0\lib\Release\x64\;$(SolutionDir)libraries\glfw-3.3.5\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>opengl32.lib;glew32s.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Generators\GenerateAlgorithms.cpp" />
     <ClCompile Include="headers\Vendor\stb_image.cpp" />
     <ClCompile Include="src\Graphics\Texture.cpp" />
     <ClCompile Include="headers\Vendor\ErrorLogger.cpp" />
@@ -114,7 +115,6 @@
     <ClInclude Include="headers\Vendor\ErrorLogger.h" />
     <ClInclude Include="headers\Vendor\OBJ_Loader.h" />
     <ClInclude Include="headers\Vendor\stb_image.h" />
-    <ClInclude Include="headers\Vendor\Vertex.h" />
     <ClInclude Include="headers\Generators\Terrain.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

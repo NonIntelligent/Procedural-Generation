@@ -9,6 +9,7 @@ class Terrain {
 	unsigned int* terrainIndexData = nullptr;
 
 	const int MAP_SIZE;
+	const unsigned int SEED;
 
 	// Opengl stuff needed to render
 	std::string shaderName;
@@ -20,8 +21,8 @@ public:
 	IndexBuffer* ib = nullptr;
 	std::vector<ShaderUniform> uniforms;
 
-	Terrain() : MAP_SIZE(33) {};
-	Terrain(int mapSize);
+	Terrain() : MAP_SIZE(33), SEED(123456789) {};
+	Terrain(int mapSize, unsigned int seed);
 	~Terrain();
 	
 	void init();

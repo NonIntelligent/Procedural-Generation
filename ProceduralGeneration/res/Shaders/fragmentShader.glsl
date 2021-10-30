@@ -1,10 +1,10 @@
 #version 420 core
 
-flat in vec4 colorsExport;
+flat in vec3 colorsExport;
 
 out vec4 colorsOut;
 
 void main(void)
 {
-   colorsOut = colorsExport;
+   colorsOut = vec4(colorsExport, 1.0);
 }

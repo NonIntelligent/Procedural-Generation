@@ -45,6 +45,9 @@
     <ClCompile Include="headers\Vendor\stb_image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Generators\GenerateAlgorithms.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers\Vendor\Algorithms.h">
@@ -63,9 +66,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="headers\Scene.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="headers\Vendor\Vertex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="headers\Generators\GenerateAlgorithms.h">
