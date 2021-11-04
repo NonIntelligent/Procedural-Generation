@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/matrix.hpp>
+#include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 
 void Terrain::buildIndexData() {
@@ -78,6 +79,25 @@ void Terrain::buildNormalData() {
 
 }
 
+void Terrain::buildTextureData() {
+	float textureS = (float) MAP_SIZE * 0.04f;
+	float textureT = (float) MAP_SIZE * 0.04f;
+	int i = 0;
+	float scaleC, scaleR;
+
+	const float divisor = MAP_SIZE - 1.f;
+
+	for (int x = 0; x < MAP_SIZE; x++) {
+		for (int z = 0; z < MAP_SIZE; z++) {
+			scaleC = x / divisor;
+			scaleR = z / divisor;
+			vertices[i].textcoord = {textureS * scaleC, textureT * scaleR};
+			i++;
+		}
+	}
+
+}
+
 Terrain::Terrain(int mapSize, unsigned int seed) : MAP_SIZE(mapSize), SEED(seed) {
 	vertices = new Vertex[mapSize * mapSize];
 
@@ -114,6 +134,12 @@ Terrain& Terrain::operator=(Terrain&& other) noexcept {
 		// Delete current resources 
 		destroyTerrain();
 
+		// illegal stuff right here
+		int* ptr = (int*) this;
+		*ptr = other.MAP_SIZE;
+		ptr += 1;
+		*ptr = other.SEED;
+
 		vertices = other.vertices;
 		terrainIndexData = other.terrainIndexData;
 		terrainMap = other.terrainMap;
@@ -145,10 +171,10 @@ void Terrain::init() {
 	// Initialise corners for algorithm
 	terrainMap[0][0] = h1;
 	terrainMap[numStrips][0] = h2;
-	terrainMap[0][numStrips] = h4;
-	terrainMap[numStrips][numStrips] = h3;
+	terrainMap[0][numStrips] = h3;
+	terrainMap[numStrips][numStrips] = h4;
 
-	Generate::DiamondSquare(terrainMap, MAP_SIZE, MAP_SIZE, 80.f, 1.1f);
+	Generate::DiamondSquare(terrainMap, MAP_SIZE, MAP_SIZE, 100.f, 1.f);
 
 	//////////////////////////////////////////////////////////
 
@@ -161,6 +187,7 @@ void Terrain::init() {
 			vertices[i].position = glm::vec3(x, terrainMap[x][z], z);
 			vertices[i].color = glm::vec3(0.f);
 			vertices[i].normal = glm::vec3(0.f);
+			vertices[i].textcoord = glm::vec2(0.f);
 			i++;
 		}
 	}
@@ -170,6 +197,9 @@ void Terrain::init() {
 
 	// Generate normal data for each triangle face
 	buildNormalData();
+
+	// Generate uv coordinates for the terrain
+	buildTextureData();
 
 	// Generate vertex arrays and buffers
 	va = new VertexArray();
@@ -194,6 +224,12 @@ void Terrain::init() {
 	modelViewMat.dataMatrix = modelView;
 	modelViewMat.type = UniformType::MAT4;
 
+	ShaderUniform textureSlot;
+	textureSlot.name = "u_texture";
+	textureSlot.resourceName = "grass";
+	textureSlot.dataMatrix[0][0] = 1.f;
+	textureSlot.type = UniformType::TEXTURE;
+
 	ShaderUniform normalMatrix;
 	normalMatrix.name = "normalMat";
 	normalMatrix.dataMatrix = transpose(inverse(mat3(modelView)));
@@ -201,6 +237,7 @@ void Terrain::init() {
 
 	uniforms.push_back(modelViewMat);
 	uniforms.push_back(normalMatrix);
+	uniforms.push_back(textureSlot);
 
 	va->unBind();
 	ib->unBind();

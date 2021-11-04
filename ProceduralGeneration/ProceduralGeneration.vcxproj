@@ -115,10 +115,6 @@
     <ClInclude Include="headers\Vendor\stb_image.h" />
     <ClInclude Include="headers\Generators\Terrain.h" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="res\Shaders\basicFragment.glsl" />
-    <None Include="res\Shaders\basicVertex.glsl" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

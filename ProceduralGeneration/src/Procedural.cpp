@@ -203,6 +203,10 @@ bool Procedural::init() {
 
 	createShaders();
 
+	Texture texture = Texture();
+	texture.loadTexture("res/grass.jpg", "grass");
+	textures.push_back(texture);
+
 	createObjects();
 
 	return true;
@@ -219,7 +223,7 @@ void Procedural::createShaders() {
 }
 
 void Procedural::createObjects(){
-	terrain = Terrain(65, 123456789u);
+	terrain = Terrain(513, 123456789u);
 	double start = glfwGetTime();
 	terrain.init();
 	double end = glfwGetTime();

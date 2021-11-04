@@ -2,6 +2,7 @@
 
 flat in vec3 colorsExport;
 in vec3 normalExport;
+in vec2 uvExport;
 
 layout(std140, binding = 1) uniform light 
 {
@@ -11,8 +12,11 @@ layout(std140, binding = 1) uniform light
 	vec3 position;
 };
 
+uniform sampler2D u_texture;
+
 vec3 normal, lightDirection;
 vec3 fAndBDiff;
+vec4 textureColour;
 
 out vec4 colorsOut;
 
@@ -22,6 +26,7 @@ void main(void)
 	normal = normalize(normalExport);
 	lightDirection = normalize(position);
 	fAndBDiff = max(dot(normal, lightDirection), 0.0) * diffuse * specular;
-	colorsOut = vec4(colorsExport + min(fAndBDiff, vec3(1.0)), 1.0);
-	colorsOut = vec4(min(fAndBDiff, vec3(1.0)), 1.0);
+	textureColour = texture(u_texture, uvExport);
+
+	colorsOut = vec4(min(fAndBDiff, vec3(1.0)), 1.0) * textureColour;
 }

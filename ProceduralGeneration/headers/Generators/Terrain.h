@@ -4,18 +4,19 @@
 
 
 class Terrain {
+	const int MAP_SIZE;
+	const unsigned int SEED;
+
 	Vertex* vertices = nullptr;
 	float** terrainMap = nullptr;
 	unsigned int* terrainIndexData = nullptr;
-
-	const int MAP_SIZE;
-	const unsigned int SEED;
 
 	// Opengl stuff needed to render
 	std::string shaderName;
 
 	void buildIndexData();
 	void buildNormalData();
+	void buildTextureData();
 
 public:
 	VertexArray* va = nullptr;
