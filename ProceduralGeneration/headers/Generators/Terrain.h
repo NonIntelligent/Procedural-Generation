@@ -14,18 +14,26 @@ class Terrain {
 	// Opengl stuff needed to render
 	std::string shaderName;
 
+	void buildIndexData();
+	void buildNormalData();
+
 public:
-	//unsigned int** terrainIndexData = nullptr;
-	VertexArray* va;
-	VertexBuffer* vb;
+	VertexArray* va = nullptr;
+	VertexBuffer* vb = nullptr;
 	IndexBuffer* ib = nullptr;
 	std::vector<ShaderUniform> uniforms;
 
 	Terrain() : MAP_SIZE(33), SEED(123456789) {};
 	Terrain(int mapSize, unsigned int seed);
+
+	// Move constructor 
+	Terrain(Terrain&& other) noexcept;
+	Terrain& operator =(Terrain&& other) noexcept;
+
 	~Terrain();
 	
 	void init();
+
 
 	void destroyTerrain();
 

@@ -1,6 +1,5 @@
 #pragma once
 #include "macros/Macro_chrono.h"
-#include "Scene.h"
 #include "Graphics/Shader.h"
 #include "Generators/Terrain.h"
 #include "Graphics/Texture.h"
@@ -37,14 +36,13 @@ class Procedural {
 	int keys[GLFW_KEY_LAST] = {0};
 
 	// Objects
-	Scene scene;
-	Terrain terrain = Terrain(65, 123456789);
+	Terrain terrain;
 	std::unordered_map<std::string, Shader> shaders;
 	std::vector<Texture> textures;
 
 	// Camera options
 	GLuint u_cameraID;
-	vec3 cameraPos = {0.f, 0.f, 10.f};
+	vec3 cameraPos = {0.f, 0.f, 0.f};
 	vec3 lookAtDir = {0.f, 0.f, -1.f};
 	const vec3 UP = {0.f, 1.f, 0.f};
 	vec3 xaxis;
@@ -54,6 +52,11 @@ class Procedural {
 	const float cameraSpeed = 2.f;
 	mat4 perspectiveMat = mat4(0.f);
 	mat4 lookAtMat = mat4(0.f);
+
+	// Lighting
+	GLuint u_lightID;
+
+	float width = 1280, height = 720;
 
 	bool initGLFW();
 	void setupWindowHints();

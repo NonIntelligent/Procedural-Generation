@@ -99,7 +99,6 @@
     <ClCompile Include="src\Procedural.cpp" />
     <ClCompile Include="headers\Vendor\Algorithms.cpp" />
     <ClCompile Include="src\Main.cpp" />
-    <ClCompile Include="src\Scene.cpp" />
     <ClCompile Include="src\Generators\Terrain.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -110,12 +109,15 @@
     <ClInclude Include="headers\Generators\GenerateAlgorithms.h" />
     <ClInclude Include="headers\macros\Definitions.h" />
     <ClInclude Include="headers\macros\Macro_chrono.h" />
-    <ClInclude Include="headers\Scene.h" />
     <ClInclude Include="headers\Vendor\Algorithms.h" />
     <ClInclude Include="headers\Vendor\ErrorLogger.h" />
     <ClInclude Include="headers\Vendor\OBJ_Loader.h" />
     <ClInclude Include="headers\Vendor\stb_image.h" />
     <ClInclude Include="headers\Generators\Terrain.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\Shaders\basicFragment.glsl" />
+    <None Include="res\Shaders\basicVertex.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -55,6 +55,40 @@ void Procedural::setupGlobalUniforms() {
 	GLCall(glBindBufferRange(GL_UNIFORM_BUFFER, 0, u_cameraID, 0, 2 * sizeof(mat4) + sizeof(vec3)));
 
 	updateCameraUniform();
+
+	GLCall(glGenBuffers(1, &u_lightID));
+	GLCall(glBindBuffer(GL_UNIFORM_BUFFER, u_lightID));
+
+	// 4 vec3 + 12 bytes of padding as layout is in multiples of 16 bytes
+
+	GLCall(glBufferData(GL_UNIFORM_BUFFER, 4 * sizeof(vec3) + 12, NULL, GL_STATIC_DRAW));
+	GLCall(glBindBuffer(GL_UNIFORM_BUFFER, 0));
+
+	// Bind uniform buffer to a binding point 1, with the buffer object at offset 0 of size.
+	GLCall(glBindBufferRange(GL_UNIFORM_BUFFER, 1, u_lightID, 0, 4 * sizeof(vec3) + 12));
+
+	// Update light uniform
+	GLCall(glBindBuffer(GL_UNIFORM_BUFFER, u_lightID));
+	
+	vec3 temp(0.0);
+
+	GLCall(glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(vec3), &temp));
+
+	temp.x = 1.f;
+	temp.y = 1.f;
+	temp.z = 1.f;
+
+	GLCall(glBufferSubData(GL_UNIFORM_BUFFER, 16, sizeof(vec3), &temp));
+
+	GLCall(glBufferSubData(GL_UNIFORM_BUFFER, 32, sizeof(vec3), &temp));
+
+	temp.x = 1.f;
+	temp.y = 5.f;
+	temp.z = 5.f;
+
+	GLCall(glBufferSubData(GL_UNIFORM_BUFFER, 48, sizeof(vec3), &temp));
+
+	GLCall(glBindBuffer(GL_UNIFORM_BUFFER, 0));
 }
 
 void Procedural::updateCameraUniform() {
@@ -73,7 +107,7 @@ void Procedural::updateCameraUniform() {
 vec3 movementDir = vec3(0);
 double mouseX = 0, mouseY = 0;
 double lastMouseX = 0, lastMouseY = 0;
-float deltaX = 0, deltaY = 0;
+double deltaX = 0, deltaY = 0;
 bool stats = false;
 
 void Procedural::updateKeyboardInput() {
@@ -136,9 +170,6 @@ Procedural::Procedural() {
 }
 
 Procedural::~Procedural() {
-	scene.deleteAllObjects();
-	scene.deleteResources();
-
 	for (auto& elem : shaders) {
 		elem.second.deleteProgram();
 	}
@@ -159,13 +190,12 @@ bool Procedural::init() {
 		return false;
 	}
 
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_DEPTH_TEST);
 
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glPrimitiveRestartIndex(65535);
 	glEnable(GL_PRIMITIVE_RESTART);
+	glPrimitiveRestartIndex(0xffffffff);
 
-	perspectiveMat = perspective(radians(60.0), (double) scene.getWidth() / scene.getHeight(), 0.1, 100.0);
+	perspectiveMat = perspective(radians(60.0), (double) width / height, 0.1, 100.0);
 	lookAtCustom();
 
 	setupGlobalUniforms();
@@ -180,6 +210,7 @@ bool Procedural::init() {
 
 void Procedural::createShaders() {
 	Shader shader;
+	//shader.parseShader("res/Shaders/vertexShader.glsl", GL_VERTEX_SHADER);
 	shader.parseShader("res/Shaders/vertexShader.glsl", GL_VERTEX_SHADER);
 	shader.parseShader("res/Shaders/fragmentShader.glsl", GL_FRAGMENT_SHADER);
 	shader.createShader();
@@ -188,6 +219,7 @@ void Procedural::createShaders() {
 }
 
 void Procedural::createObjects(){
+	terrain = Terrain(65, 123456789u);
 	double start = glfwGetTime();
 	terrain.init();
 	double end = glfwGetTime();
@@ -253,8 +285,8 @@ void Procedural::updateCamera() {
 	vec3 direction;
 
 	// Convert screen space offset to clip space.
-	double clipX = deltaX / scene.getWidth();
-	double clipY = deltaY / scene.getHeight();
+	double clipX = deltaX / width;
+	double clipY = deltaY / height;
 
 	horizontalAngle += toRadf(180.f * 1.f * clipX);
 	verticalAngle += toRadf(180.f * 1.f * clipY);
@@ -295,6 +327,9 @@ void Procedural::updateShaderUniform(Shader* shader, const std::vector<ShaderUni
 			break;
 		case UniformType::VEC4:
 			shader->setUniform4f((*it).name, (*it).dataMatrix[0]);
+			break;
+		case UniformType::MAT3:
+			shader->setUniformMatrix3fv((*it).name, 1, GL_FALSE, (*it).dataMatrix);
 			break;
 		case UniformType::MAT4:
 			shader->setUniformMatrix4fv((*it).name, 1, GL_FALSE, (*it).dataMatrix);
@@ -338,7 +373,7 @@ void Procedural::updateShaderUniform(Shader* shader, const std::vector<ShaderUni
 				break;
 			}
 
-			unsigned int bindingPoint = (*it).dataMatrix[0][0];
+			unsigned int bindingPoint = (unsigned int) (*it).dataMatrix[0][0];
 			GLCall(glActiveTexture(GL_TEXTURE0 + bindingPoint));
 			GLCall(glBindTexture(GL_TEXTURE_CUBE_MAP, texture.getTextureID()));
 			shader->setUniform1i((*it).name, (int)bindingPoint);

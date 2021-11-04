@@ -1,8 +1,9 @@
 #include "Generators/GenerateAlgorithms.h"
 
 #include <cstdlib>
+#include <iostream>
 
-void Generate::squareStep(float** arr, int x, int z, int reach, const int maxSize) {
+void Generate::squareStep(float** arr, int x, int z, int reach, const int maxSize, float randMax) {
 	int count = 0;
 	float avg = 0.f;
 	// Check if the point to sample is within bounds of the array
@@ -27,52 +28,40 @@ void Generate::squareStep(float** arr, int x, int z, int reach, const int maxSiz
 		count++;
 	}
 
-	avg += diamondRandom(0.1f);
-	avg /= count; // Can count be 0?, only if supplied values 
+	avg += random(randMax);
+	avg /= count;
 	arr[x][z] = avg;
 }
 
-void Generate::diamondStep(float** arr, int x, int z, int reach, const int maxSize) {
+void Generate::diamondStep(float** arr, int x, int z, int reach, const int maxSize, float randMax) {
 	int count = 0;
 	float avg = 0.f;
 	// Check if the point to sample is within bounds of the array
 
-	if (x - reach >= 0 && z - reach >= 0) {
-		avg += arr[x - reach][z - reach];
-		count++;
-	}
+	avg += arr[x - reach][z - reach];
 
-	if (x - reach >= 0 && z + reach < maxSize) {
-		avg += arr[x - reach][z + reach];
-		count++;
-	}
+	avg += arr[x - reach][z + reach];
 
-	if (x + reach < maxSize && z - reach >= 0) {
-		avg += arr[x + reach][z - reach];
-		count++;
-	}
+	avg += arr[x + reach][z - reach];
 
-	if (x + reach < maxSize && z + reach < maxSize) {
-		avg += arr[x + reach][z + reach];
-		count++;
-	}
+	avg += arr[x + reach][z + reach];
 
-	avg += diamondRandom(0.1f);
-	avg /= count; // Can count be 0?, only if supplied values 
+	avg += random(randMax);
+	avg /= 4; 
 	arr[x][z] = avg;
 }
 
-float Generate::diamondRandom(float h) {
-	return random() * powf(2, -h);
-}
+void Generate::DiamondSquare(float** arr, int size, const int maxSize, float randMax,const float h) {
+	static int diamondStepCalls = 0;
+	static int squareStepCalls = 0;
 
-void Generate::DiamondSquare(float** arr, int size, const int maxSize) {
 	int midpoint = size / 2;
 	if (midpoint < 1) return;
 
 	for (int x = midpoint; x < maxSize; x += size) {
 		for (int z = midpoint; z < maxSize; z += size) {
-			diamondStep(arr, x % maxSize, z % maxSize, midpoint, maxSize);
+			diamondStep(arr, x % maxSize, z % maxSize, midpoint, maxSize, randMax);
+			diamondStepCalls++;
 		}
 	}
 
@@ -83,22 +72,26 @@ void Generate::DiamondSquare(float** arr, int size, const int maxSize) {
 
 		// Odd column
 		if (currentColumn % 2 == 1) {
-			for (int z = midpoint; z < maxSize; z += midpoint) {
-				squareStep(arr, x % maxSize, z % maxSize, midpoint, maxSize);
+			for (int z = midpoint; z < maxSize; z += size) {
+				squareStep(arr, x % maxSize, z % maxSize, midpoint, maxSize, randMax);
+				squareStepCalls++;
 			}
 		}
 		else {
-			for (int z = 0; z < maxSize; z += midpoint) {
-				squareStep(arr, x % maxSize, z % maxSize, midpoint, maxSize);
+			for (int z = 0; z <= maxSize; z += size) {
+				squareStep(arr, x % maxSize, z % maxSize, midpoint, maxSize, randMax);
+				squareStepCalls++;
 			}
 		}
 	}
 
-	DiamondSquare(arr, midpoint, maxSize);
+	DiamondSquare(arr, midpoint, maxSize, randMax * powf(2, -h), h);
 }
 
-float Generate::random() {
-	return (rand() % 1001) / 500.f - 1.f;
+float Generate::random(float range) {
+	int wholeNumberRange = range * 1000 + 1; // Scale range by the thousands for higher precision
+
+	return (rand() % wholeNumberRange) / 500.f - (float) range;
 }
 
 void Generate::setRandomSeed(unsigned int seed) {

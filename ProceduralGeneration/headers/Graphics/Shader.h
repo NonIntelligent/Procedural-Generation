@@ -15,9 +15,10 @@ enum class UniformType {
 	FLOAT1 = 45,
 	VEC3 = 52,
 	VEC4 = 53,
-	MAT4 = 54,
-	TEXTURE = 60,
-	CUBEMAP = 61
+	MAT3 = 63,
+	MAT4 = 64,
+	TEXTURE = 90,
+	CUBEMAP = 91
 };
 
 // All data required for different types of uniforms can be stored in the matrix.
@@ -73,6 +74,7 @@ public:
 	void setUniform3f(const std::string & name, vec3 floats);
 	void setUniform4f(const std::string& name, vec4 floats);
 	void setUniformMatrix4fv(const std::string& name, GLsizei count, GLboolean transpose, mat4 matrix);
+	void setUniformMatrix3fv(const std::string& name, GLsizei count, GLboolean transpose, mat3 matrix);
 
 	void setUniformBlock(const std::string &blockName, GLuint blockBindingPt);
 

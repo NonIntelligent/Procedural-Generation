@@ -3,7 +3,7 @@
 flat in vec3 colorsExport;
 in vec3 normalExport;
 
-layout(std140, binding = 1) uniform light 
+layout(std140) uniform light 
 {
 	vec3 ambient;
 	vec3 diffuse;
@@ -21,7 +21,6 @@ void main(void)
 	colorsOut = vec4(colorsExport, 1.0);
 	normal = normalize(normalExport);
 	lightDirection = normalize(position);
-	fAndBDiff = max(dot(normal, lightDirection), 0.0) * diffuse * specular;
-	colorsOut = vec4(colorsExport + min(fAndBDiff, vec3(1.0)), 1.0);
-	colorsOut = vec4(min(fAndBDiff, vec3(1.0)), 1.0);
+	fAndBDiff = max(dot(normal, lightDirection), 0.f) * diffuse * specular;
+	colorsOut = vec4(colorsExport * min(fAndBDiff, vec3(1.0)), 1.0);
 }

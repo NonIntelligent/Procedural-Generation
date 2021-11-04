@@ -122,6 +122,11 @@ void Shader::setUniformMatrix4fv(const std::string & name, GLsizei count, GLbool
 	GLCall(glUniformMatrix4fv(getUniformLocation(name), count, transpose, ptr));
 }
 
+void Shader::setUniformMatrix3fv(const std::string& name, GLsizei count, GLboolean transpose, mat3 matrix) {
+	float* ptr = (float*)&matrix[0];
+	GLCall(glUniformMatrix3fv(getUniformLocation(name), count, transpose, ptr));
+}
+
 void Shader::setUniformBlock(const std::string &blockName, GLuint blockBindingPt) {
 	GLuint uniformBlock;
 	GLCall(uniformBlock = glGetUniformBlockIndex(m_RendererID, blockName.c_str()));
