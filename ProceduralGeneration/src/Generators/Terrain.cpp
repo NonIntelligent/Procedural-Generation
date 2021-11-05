@@ -7,6 +7,8 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 
+#include <iostream>
+
 void Terrain::buildIndexData() {
 	int i = 0;
 
@@ -163,10 +165,12 @@ void Terrain::init() {
 	// Apply diamond square algorithm here
 	Generate::setRandomSeed(SEED);
 
-	float h1 = 1.f;
-	float h2 = 1.f;
-	float h3 = 1.f;
-	float h4 = 1.f;
+	std::cout << "Seed value: " << SEED << std::endl;
+
+	float h1 = 0.f;
+	float h2 = 0.f;
+	float h3 = 0.f;
+	float h4 = 0.f;
 
 	// Initialise corners for algorithm
 	terrainMap[0][0] = h1;
@@ -174,7 +178,7 @@ void Terrain::init() {
 	terrainMap[0][numStrips] = h3;
 	terrainMap[numStrips][numStrips] = h4;
 
-	Generate::DiamondSquare(terrainMap, MAP_SIZE, MAP_SIZE, 100.f, 1.f);
+	Generate::DiamondSquare(terrainMap, MAP_SIZE, MAP_SIZE, 45.f, 1.0f);
 
 	//////////////////////////////////////////////////////////
 
@@ -224,11 +228,29 @@ void Terrain::init() {
 	modelViewMat.dataMatrix = modelView;
 	modelViewMat.type = UniformType::MAT4;
 
-	ShaderUniform textureSlot;
-	textureSlot.name = "u_texture";
-	textureSlot.resourceName = "grass";
-	textureSlot.dataMatrix[0][0] = 1.f;
-	textureSlot.type = UniformType::TEXTURE;
+	ShaderUniform textureSlot1;
+	textureSlot1.name = "u_texture1";
+	textureSlot1.resourceName = "sand";
+	textureSlot1.dataMatrix[0][0] = 1.f;
+	textureSlot1.type = UniformType::TEXTURE;
+
+	ShaderUniform textureSlot2;
+	textureSlot2.name = "u_texture2";
+	textureSlot2.resourceName = "grass";
+	textureSlot2.dataMatrix[0][0] = 2.f;
+	textureSlot2.type = UniformType::TEXTURE;
+
+	ShaderUniform textureSlot3;
+	textureSlot3.name = "u_texture3";
+	textureSlot3.resourceName = "rock";
+	textureSlot3.dataMatrix[0][0] = 3.f;
+	textureSlot3.type = UniformType::TEXTURE;
+
+	ShaderUniform textureSlot4;
+	textureSlot4.name = "u_texture4";
+	textureSlot4.resourceName = "snow";
+	textureSlot4.dataMatrix[0][0] = 4.f;
+	textureSlot4.type = UniformType::TEXTURE;
 
 	ShaderUniform normalMatrix;
 	normalMatrix.name = "normalMat";
@@ -237,7 +259,10 @@ void Terrain::init() {
 
 	uniforms.push_back(modelViewMat);
 	uniforms.push_back(normalMatrix);
-	uniforms.push_back(textureSlot);
+	uniforms.push_back(textureSlot1);
+	uniforms.push_back(textureSlot2);
+	uniforms.push_back(textureSlot3);
+	uniforms.push_back(textureSlot4);
 
 	va->unBind();
 	ib->unBind();

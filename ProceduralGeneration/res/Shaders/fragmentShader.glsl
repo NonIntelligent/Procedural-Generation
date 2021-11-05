@@ -3,6 +3,7 @@
 flat in vec3 colorsExport;
 in vec3 normalExport;
 in vec2 uvExport;
+in float heightExport;
 
 layout(std140, binding = 1) uniform light 
 {

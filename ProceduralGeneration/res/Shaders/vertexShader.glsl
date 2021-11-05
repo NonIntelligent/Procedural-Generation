@@ -18,6 +18,7 @@ uniform mat3 normalMat;
 flat out vec3 colorsExport;
 out vec3 normalExport;
 out vec2 uvExport;
+out float heightExport;
 
 void main(void)
 {
@@ -26,4 +27,5 @@ void main(void)
 	colorsExport = terrainColors;
 	normalExport = normalize(normalMat * terrainNormal);
 	uvExport = terrainUV;
+	heightExport = terrainCoords.y;
 }

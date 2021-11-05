@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+float Procedural::cameraSpeed = 20.f;
+
 // Error callback for GLFW
 void error_callback(int error, const char* description) {
 	fprintf(stderr, "Error: %s\n", description);
@@ -192,10 +194,12 @@ bool Procedural::init() {
 
 	glEnable(GL_DEPTH_TEST);
 
+	//glEnable(GL_CULL_FACE);
+
 	glEnable(GL_PRIMITIVE_RESTART);
 	glPrimitiveRestartIndex(0xffffffff);
 
-	perspectiveMat = perspective(radians(60.0), (double) width / height, 0.1, 100.0);
+	perspectiveMat = perspective(radians(60.0), (double) width / height, 0.1, 1000.0);
 	lookAtCustom();
 
 	setupGlobalUniforms();
@@ -203,8 +207,21 @@ bool Procedural::init() {
 
 	createShaders();
 
+	// Load all textures in use
 	Texture texture = Texture();
 	texture.loadTexture("res/grass.jpg", "grass");
+	textures.push_back(texture);
+
+	texture = Texture();
+	texture.loadTexture("res/rock.jpg", "rock");
+	textures.push_back(texture);
+
+	texture = Texture();
+	texture.loadTexture("res/sand.jpg", "sand");
+	textures.push_back(texture);
+
+	texture = Texture();
+	texture.loadTexture("res/snow.png", "snow");
 	textures.push_back(texture);
 
 	createObjects();
@@ -214,16 +231,15 @@ bool Procedural::init() {
 
 void Procedural::createShaders() {
 	Shader shader;
-	//shader.parseShader("res/Shaders/vertexShader.glsl", GL_VERTEX_SHADER);
 	shader.parseShader("res/Shaders/vertexShader.glsl", GL_VERTEX_SHADER);
-	shader.parseShader("res/Shaders/fragmentShader.glsl", GL_FRAGMENT_SHADER);
+	shader.parseShader("res/Shaders/multiTextureShader.glsl", GL_FRAGMENT_SHADER);
 	shader.createShader();
 
 	shaders["terrain"] = shader;
 }
 
 void Procedural::createObjects(){
-	terrain = Terrain(513, 123456789u);
+	terrain = Terrain(1025, high_res_clock::now().time_since_epoch().count());
 	double start = glfwGetTime();
 	terrain.init();
 	double end = glfwGetTime();
@@ -483,6 +499,10 @@ void Procedural::key_callback(GLFWwindow* window, int key, int scancode, int act
 		movementDir.y = key == GLFW_KEY_LEFT_CONTROL ? -1 : key == GLFW_KEY_SPACE ? 1 : movementDir.y;
 		movementDir.z = key == GLFW_KEY_W ? -1 : key == GLFW_KEY_S ? 1 : movementDir.z;
 
+		if (key == GLFW_KEY_LEFT_SHIFT) {
+			cameraSpeed = 60.f;
+		}
+
 		if (key == GLFW_KEY_ESCAPE) {
 			glfwSetWindowShouldClose(window, GLFW_TRUE);
 		}
@@ -498,6 +518,10 @@ void Procedural::key_callback(GLFWwindow* window, int key, int scancode, int act
 		}
 		if (key == GLFW_KEY_W || key == GLFW_KEY_S) {
 			movementDir.z = 0;
+		}
+
+		if (key == GLFW_KEY_LEFT_SHIFT) {
+			cameraSpeed = 20.f;
 		}
 		break;
 	default:

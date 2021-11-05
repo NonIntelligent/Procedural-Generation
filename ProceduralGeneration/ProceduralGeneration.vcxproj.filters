@@ -84,4 +84,7 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="res\Shaders\multiTextureShader.glsl" />
+  </ItemGroup>
 </Project>

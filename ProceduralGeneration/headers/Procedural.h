@@ -49,7 +49,7 @@ class Procedural {
 	vec3 yaxis;
 	vec3 zaxis;
 	float horizontalAngle = PI_f, verticalAngle = 0.f;
-	const float cameraSpeed = 2.f;
+	static float cameraSpeed;
 	mat4 perspectiveMat = mat4(0.f);
 	mat4 lookAtMat = mat4(0.f);
 
