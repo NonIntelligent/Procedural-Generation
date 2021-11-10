@@ -2,6 +2,9 @@
 #include "Graphics/VertexObjects.h"
 #include "Graphics/Shader.h"
 
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+
 
 class Terrain {
 	const int MAP_SIZE;
@@ -33,7 +36,7 @@ public:
 
 	~Terrain();
 	
-	void init();
+	void init(glm::vec4 initialHeight, glm::vec3 heightBounds, float randomRange, float roughness);
 
 
 	void destroyTerrain();

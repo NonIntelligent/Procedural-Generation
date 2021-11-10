@@ -5,7 +5,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/matrix.hpp>
 #include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
 
 #include <iostream>
 
@@ -158,7 +157,7 @@ Terrain::~Terrain() {
 
 }
 
-void Terrain::init() {
+void Terrain::init(glm::vec4 initialHeight, glm::vec3 heightBounds, float randomRange, float roughness) {
 	int numStrips = MAP_SIZE - 1;
 	int verticesPerStrip = MAP_SIZE * 2;
 
@@ -167,18 +166,13 @@ void Terrain::init() {
 
 	std::cout << "Seed value: " << SEED << std::endl;
 
-	float h1 = 0.f;
-	float h2 = 0.f;
-	float h3 = 0.f;
-	float h4 = 0.f;
-
 	// Initialise corners for algorithm
-	terrainMap[0][0] = h1;
-	terrainMap[numStrips][0] = h2;
-	terrainMap[0][numStrips] = h3;
-	terrainMap[numStrips][numStrips] = h4;
+	terrainMap[0][0] = initialHeight.x;
+	terrainMap[numStrips][0] = initialHeight.y;
+	terrainMap[0][numStrips] = initialHeight.z;
+	terrainMap[numStrips][numStrips] = initialHeight.w;
 
-	Generate::DiamondSquare(terrainMap, MAP_SIZE, MAP_SIZE, 45.f, 1.0f);
+	Generate::DiamondSquare(terrainMap, MAP_SIZE, MAP_SIZE, randomRange, roughness);
 
 	//////////////////////////////////////////////////////////
 
@@ -222,11 +216,27 @@ void Terrain::init() {
 
 	mat4 modelView = mat4(1.f);
 	modelView = translate(modelView, vec3(-MAP_SIZE / 2.f, -2.f, -MAP_SIZE / 2.f));
+	modelView = scale(modelView, vec3(5.f));
 
 	ShaderUniform modelViewMat;
 	modelViewMat.name = "model";
 	modelViewMat.dataMatrix = modelView;
 	modelViewMat.type = UniformType::MAT4;
+
+	ShaderUniform low;
+	low.name = "lower";
+	low.dataMatrix[0][0] = heightBounds.x;
+	low.type = UniformType::FLOAT1;
+
+	ShaderUniform high;
+	high.name = "higher";
+	high.dataMatrix[0][0] = heightBounds.y;
+	high.type = UniformType::FLOAT1;
+
+	ShaderUniform max;
+	max.name = "maximum";
+	max.dataMatrix[0][0] = heightBounds.z;
+	max.type = UniformType::FLOAT1;
 
 	ShaderUniform textureSlot1;
 	textureSlot1.name = "u_texture1";
@@ -258,6 +268,9 @@ void Terrain::init() {
 	normalMatrix.type = UniformType::MAT3;
 
 	uniforms.push_back(modelViewMat);
+	uniforms.push_back(low);
+	uniforms.push_back(high);
+	uniforms.push_back(max);
 	uniforms.push_back(normalMatrix);
 	uniforms.push_back(textureSlot1);
 	uniforms.push_back(textureSlot2);

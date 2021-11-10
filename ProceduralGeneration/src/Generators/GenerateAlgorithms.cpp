@@ -1,7 +1,6 @@
 #include "Generators/GenerateAlgorithms.h"
 
 #include <glm/vec3.hpp>
-#include <glm/detail/func_common.inl>
 #include <glm/gtc/noise.hpp>
 
 #include <cstdlib>
@@ -93,7 +92,7 @@ void Generate::diamondStep(float** arr, int x, int z, int reach, const int maxSi
 }
 
 glm::vec2 Generate::gradient(glm::vec2 point) {
-
+	return { 5,5 };
 }
 
 float Generate::noise(float a, float b) {
@@ -107,6 +106,7 @@ float Generate::noise(float a, float b) {
 	glm::vec2 g2 = gradient(p2);
 	glm::vec2 g3 = gradient(p3);
 
+	return 6.f;
 }
 
 void Generate::DiamondSquare(float** arr, int size, const int maxSize, float randMax,const float h) {

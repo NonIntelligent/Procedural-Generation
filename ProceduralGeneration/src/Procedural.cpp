@@ -232,16 +232,16 @@ bool Procedural::init() {
 void Procedural::createShaders() {
 	Shader shader;
 	shader.parseShader("res/Shaders/vertexShader.glsl", GL_VERTEX_SHADER);
-	shader.parseShader("res/Shaders/multiTextureShader.glsl", GL_FRAGMENT_SHADER);
+	shader.parseShader("res/Shaders/TerrainFragment.glsl", GL_FRAGMENT_SHADER);
 	shader.createShader();
 
 	shaders["terrain"] = shader;
 }
 
 void Procedural::createObjects(){
-	terrain = Terrain(1025, high_res_clock::now().time_since_epoch().count());
+	terrain = Terrain(513, 420);
 	double start = glfwGetTime();
-	terrain.init();
+	terrain.init(vec4(30.f), vec3(4.f, 16.f, 32.f), 65.f, 1.0f);
 	double end = glfwGetTime();
 	std::cout << "Time taken to generate Terrain: " << (end - start) << " seconds" << std::endl;
 	terrain.setShaderName("terrain");

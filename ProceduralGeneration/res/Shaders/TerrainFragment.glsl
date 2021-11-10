@@ -20,6 +20,8 @@ uniform sampler2D u_texture2;
 uniform sampler2D u_texture3;
 uniform sampler2D u_texture4;
 
+uniform float maximum, higher, lower;
+
 vec3 normal, lightDirection;
 vec3 fAndBDiff;
 vec4 textureColour;
@@ -28,7 +30,7 @@ out vec4 colorsOut;
 
 void main(void)
 {
-	textureColour = mixTextures(4.f, 20.f, 27.f, 0.6f, 1.2f);
+	textureColour = mixTextures(lower, higher, maximum, 0.6f, 1.2f);
 
 	colorsOut = vec4(colorsExport, 1.0);
 	normal = normalize(normalExport);
@@ -38,7 +40,7 @@ void main(void)
 	colorsOut = vec4(min(fAndBDiff, vec3(1.0)), 1.0) * textureColour;
 }
 
-vec4 mixTextures(float lower, float higher, float max, float blendFactor, float blendRange){
+vec4 mixTextures(float low, float high, float max, float blendFactor, float blendRange){
 	vec4 result;
 
 	vec4 sandColour = texture(u_texture1, uvExport);
@@ -46,17 +48,17 @@ vec4 mixTextures(float lower, float higher, float max, float blendFactor, float 
 	vec4 rockColour = texture(u_texture3, uvExport);
 	vec4 snowColour = texture(u_texture4, uvExport);
 
-	if(heightExport < lower){ result = sandColour;}
-	if (heightExport > lower - blendRange && heightExport < lower + blendRange) {
+	if(heightExport < low){ result = sandColour;}
+	if (heightExport > low - blendRange && heightExport < low + blendRange) {
 		result = mix(sandColour, grassColour, blendFactor);
 	}
 
-	if(heightExport > lower && heightExport < higher){ result = grassColour;}
-	if (heightExport > higher - blendRange && heightExport < higher + blendRange) {
+	if(heightExport > low && heightExport < high){ result = grassColour;}
+	if (heightExport > high - blendRange && heightExport < high + blendRange) {
 		result = mix(grassColour, rockColour, blendFactor);
 	}
 
-	if(heightExport > higher && heightExport < max){ result = rockColour;}
+	if(heightExport > high && heightExport < max){ result = rockColour;}
 	if (heightExport > max - blendRange && heightExport < max + blendRange) {
 		result = mix(rockColour, snowColour, blendFactor);
 	}
