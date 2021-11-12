@@ -100,6 +100,7 @@
     <ClCompile Include="headers\Vendor\Algorithms.cpp" />
     <ClCompile Include="src\Main.cpp" />
     <ClCompile Include="src\Generators\Terrain.cpp" />
+    <ClCompile Include="src\Generators\Water.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers\Graphics\Shader.h" />
@@ -114,6 +115,11 @@
     <ClInclude Include="headers\Vendor\OBJ_Loader.h" />
     <ClInclude Include="headers\Vendor\stb_image.h" />
     <ClInclude Include="headers\Generators\Terrain.h" />
+    <ClInclude Include="headers\Generators\Water.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\Shaders\waterFragment.glsl" />
+    <None Include="res\Shaders\waterVertex.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -14,10 +14,6 @@ class Generate {
 	// Set the midpoint of a square to the avg of 4 values to later form a diamond
 	static void diamondStep(float** arr, int x, int z, int reach, const int maxSize, float randMax);
 
-	static glm::vec2 gradient(glm::vec2 point);
-
-	static float noise(float a, float b);
-
 public:
 	// Modifies the array based on the Diamond Square algorithm
 	// @param size length of the current square grid (initial = maxSize)
@@ -27,7 +23,7 @@ public:
 	// https://gpfault.net/posts/perlin-noise.txt.html
 	// https://www.redblobgames.com/maps/terrain-from-noise/
 
-	static void PerlinNoise(float** arr, int maxSize, int baseFrequency, float h);
+	static void PerlinNoise(float** arr, int maxSize, int octaves, float h, float minHeight, float maxHeight);
 
 	// Generate a random value within the values (-range -> +range) with accuracy of 3 decimal places
 	static float random(float range = 1.f);

@@ -1,11 +1,15 @@
 #version 420 core
 
 vec4 mixTextures(float lower, float higher, float max, float blendFactor, float blendRange);
+vec3 calcLight(vec3 n, vec3 lightDir, vec3 viewDir);
 
 flat in vec3 colorsExport;
 in vec3 normalExport;
 in vec2 uvExport;
 in float heightExport;
+
+in vec3 viewPosition;
+in vec3 fragPos;
 
 layout(std140, binding = 1) uniform light 
 {
@@ -22,8 +26,8 @@ uniform sampler2D u_texture4;
 
 uniform float maximum, higher, lower;
 
-vec3 normal, lightDirection;
-vec3 fAndBDiff;
+vec3 normal, lightDirection, view;
+
 vec4 textureColour;
 
 out vec4 colorsOut;
@@ -32,12 +36,13 @@ void main(void)
 {
 	textureColour = mixTextures(lower, higher, maximum, 0.6f, 1.2f);
 
-	colorsOut = vec4(colorsExport, 1.0);
 	normal = normalize(normalExport);
 	lightDirection = normalize(position);
-	fAndBDiff = max(dot(normal, lightDirection), 0.0) * diffuse * specular;
+	view = normalize(viewPosition - fragPos);
 
-	colorsOut = vec4(min(fAndBDiff, vec3(1.0)), 1.0) * textureColour;
+	vec3 result = calcLight(normal, lightDirection, view);
+
+	colorsOut = vec4(result, 1.0);
 }
 
 vec4 mixTextures(float low, float high, float max, float blendFactor, float blendRange){
@@ -66,4 +71,17 @@ vec4 mixTextures(float low, float high, float max, float blendFactor, float blen
 	if(heightExport > max){ result = snowColour;}
 
 	return result;
+}
+
+vec3 calcLight(vec3 n, vec3 lightDir, vec3 viewDir) {
+	float diff = max(dot(n, lightDir), 0.0);
+
+	vec3 reflectDir = reflect(-lightDir, normal);
+	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 0.0);
+
+	vec3 ambient = ambient * vec3(textureColour);
+	vec3 diffuse = diffuse * diff * vec3(textureColour) * 1.3;
+	vec3 specular = specular * spec * vec3(textureColour) * 0.0;
+
+	return (ambient + diffuse + specular);
 }

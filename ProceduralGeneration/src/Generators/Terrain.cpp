@@ -215,8 +215,8 @@ void Terrain::init(glm::vec4 initialHeight, glm::vec3 heightBounds, float random
 	ib = new IndexBuffer(&terrainIndexData[0], (MAP_SIZE - 1) * (MAP_SIZE * 2) + numStrips, GL_STATIC_DRAW);
 
 	mat4 modelView = mat4(1.f);
-	modelView = translate(modelView, vec3(-MAP_SIZE / 2.f, -2.f, -MAP_SIZE / 2.f));
-	modelView = scale(modelView, vec3(5.f));
+	modelView = translate(modelView, vec3(-MAP_SIZE / 2.f, 0.f, -MAP_SIZE / 2.f));
+	modelView = scale(modelView, vec3(2.f, 4.f, 2.f));
 
 	ShaderUniform modelViewMat;
 	modelViewMat.name = "model";

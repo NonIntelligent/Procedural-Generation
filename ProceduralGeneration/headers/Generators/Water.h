@@ -5,10 +5,8 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
-
-class Terrain {
-	const int MAP_SIZE;
-	const unsigned int SEED;
+class Water { 
+	int map_size = 5;
 
 	Vertex* vertices = nullptr;
 	float** terrainMap = nullptr;
@@ -27,23 +25,21 @@ public:
 	IndexBuffer* ib = nullptr;
 	std::vector<ShaderUniform> uniforms;
 
-	Terrain() : MAP_SIZE(33), SEED(123456789) {};
-	Terrain(int mapSize, unsigned int seed);
-
-	// Move constructor 
-	Terrain(Terrain&& other) noexcept;
-	Terrain& operator =(Terrain&& other) noexcept;
-
-	~Terrain();
+	// Supply to shader simulate waves
+	float waveTime = 0.0;
+	float seaLevel = 0.f;
 	
-	void init(glm::vec4 initialHeight, glm::vec3 heightBounds, float randomRange, float roughness);
+	Water() { };
+	Water(int mapSize, float seaLevel);
+	~Water() { };
 
-	void destroyTerrain();
+	void init();
+
+	void destroyWater();
 
 	void setShaderName(std::string name);
 	std::string getShaderName();
 	int getMapSize();
 	IndexBuffer* getIndexBuffer();
-
 };
 

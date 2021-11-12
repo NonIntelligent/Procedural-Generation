@@ -2,6 +2,7 @@
 
 #include <glm/vec3.hpp>
 #include <glm/gtc/noise.hpp>
+#include <glm/geometric.hpp>
 
 #include <cstdlib>
 #include <iostream>
@@ -91,24 +92,6 @@ void Generate::diamondStep(float** arr, int x, int z, int reach, const int maxSi
 	arr[x][z] = avg;
 }
 
-glm::vec2 Generate::gradient(glm::vec2 point) {
-	return { 5,5 };
-}
-
-float Generate::noise(float a, float b) {
-	glm::vec2 p0 = glm::floor(glm::vec2(a, b));
-	glm::vec2 p1 = p0 + glm::vec2(1.f, 0.f);
-	glm::vec2 p2 = p0 + glm::vec2(0.f, 1.f);
-	glm::vec2 p3 = p0 + glm::vec2(1.f, 1.f);
-
-	glm::vec2 g0 = gradient(p0);
-	glm::vec2 g1 = gradient(p1);
-	glm::vec2 g2 = gradient(p2);
-	glm::vec2 g3 = gradient(p3);
-
-	return 6.f;
-}
-
 void Generate::DiamondSquare(float** arr, int size, const int maxSize, float randMax,const float h) {
 	static int diamondStepCalls = 0;
 	static int squareStepCalls = 0;
@@ -146,26 +129,35 @@ void Generate::DiamondSquare(float** arr, int size, const int maxSize, float ran
 	DiamondSquare(arr, midpoint, maxSize, randMax * powf(2, -h), h);
 }
 
-void Generate::PerlinNoise(float** arr, int maxSize, int baseFrequency, float h) {
+void Generate::PerlinNoise(float** arr, int maxSize, int octaves, float h, float minHeight, float maxHeight) {
 	for (int x = 0; x < maxSize; x++) {
 		for (int z = 0; z < maxSize; z++) {
 			float nx = (float) x / maxSize - 0.5f, nz = (float) z / maxSize - 0.5f;
 
 			float amplitude = 1.f;
 			float scalar = 1.f;
-			float result = 0.f;
+			float divideSum = 0.f;
+			float result = 0.f, outputHeight = 0.f;
 
 			// Combine multiple frequencies
-			for (int i = 0; i < 4; i++) {
-				result += amplitude * glm::perlin(glm::vec2{baseFrequency * scalar * nx, baseFrequency * scalar * nz});
+			for (int i = 0; i < octaves; i++) {
+				result += amplitude * glm::abs(glm::perlin(glm::vec2(scalar * nx, scalar * nz)));
+				divideSum += amplitude;
 				amplitude *= 0.5f;
 				scalar *= 2.f;
 			}
 
 			// Average the noise values
-			result /= 1.f + 0.5f + 0.25f + 0.125f;
+			result /= divideSum;
 
-			arr[x][z] = exp2f(h); // flatten or stretch valleys
+			// flatten or stretch valleys
+			result = powf(result, h);
+			result = roundf(result * 512.f) / 512.f;
+
+			float delta = maxHeight - minHeight;
+			outputHeight = delta * result + minHeight;
+
+			arr[x][z] = outputHeight;
 			
 		}
 	}

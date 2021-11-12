@@ -20,6 +20,9 @@ out vec3 normalExport;
 out vec2 uvExport;
 out float heightExport;
 
+out vec3 viewPosition;
+out vec3 fragPos;
+
 void main(void)
 {
 	vec4 pos = vec4(terrainCoords, 1.0);
@@ -28,4 +31,7 @@ void main(void)
 	normalExport = normalize(normalMat * terrainNormal);
 	uvExport = terrainUV;
 	heightExport = terrainCoords.y;
+
+	viewPosition = viewPos;
+	fragPos = vec3(model * vec4(terrainCoords, 1.f));
 }

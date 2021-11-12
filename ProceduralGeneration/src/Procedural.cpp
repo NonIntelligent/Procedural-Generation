@@ -32,7 +32,7 @@ bool Procedural::initGLFW() {
 
 
 	glfwMakeContextCurrent(window);
-	glfwSwapInterval(1);
+	glfwSwapInterval(0);
 
 	glfwSetKeyCallback(window, &Procedural::key_callback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -72,21 +72,25 @@ void Procedural::setupGlobalUniforms() {
 	// Update light uniform
 	GLCall(glBindBuffer(GL_UNIFORM_BUFFER, u_lightID));
 	
-	vec3 temp(0.0);
+	vec3 temp(0.1f);
 
 	GLCall(glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(vec3), &temp));
 
-	temp.x = 1.f;
-	temp.y = 1.f;
-	temp.z = 1.f;
+	temp.x = 0.5f;
+	temp.y = 0.5f;
+	temp.z = 0.5f;
 
 	GLCall(glBufferSubData(GL_UNIFORM_BUFFER, 16, sizeof(vec3), &temp));
 
+	temp.x = 0.7f;
+	temp.y = 0.7f;
+	temp.z = 0.7f;
+
 	GLCall(glBufferSubData(GL_UNIFORM_BUFFER, 32, sizeof(vec3), &temp));
 
-	temp.x = 1.f;
-	temp.y = 5.f;
-	temp.z = 5.f;
+	temp.x = 10.f;
+	temp.y = 50.f;
+	temp.z = 50.f;
 
 	GLCall(glBufferSubData(GL_UNIFORM_BUFFER, 48, sizeof(vec3), &temp));
 
@@ -193,6 +197,10 @@ bool Procedural::init() {
 	}
 
 	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	//glEnable(GL_CULL_FACE);
 
@@ -236,23 +244,39 @@ void Procedural::createShaders() {
 	shader.createShader();
 
 	shaders["terrain"] = shader;
+
+	shader = Shader();
+	shader.parseShader("res/Shaders/waterVertex.glsl", GL_VERTEX_SHADER);
+	shader.parseShader("res/Shaders/waterFragment.glsl", GL_FRAGMENT_SHADER);
+	shader.createShader();
+
+	shaders["sea"] = shader;
 }
 
 void Procedural::createObjects(){
-	terrain = Terrain(513, 420);
+	terrain = Terrain(513, high_res_clock::now().time_since_epoch().count());
 	double start = glfwGetTime();
-	terrain.init(vec4(30.f), vec3(4.f, 16.f, 32.f), 65.f, 1.0f);
+	terrain.init(vec4(25.f), vec3(4.f, 16.f, 32.f), 45.f, 1.1f);
 	double end = glfwGetTime();
 	std::cout << "Time taken to generate Terrain: " << (end - start) << " seconds" << std::endl;
 	terrain.setShaderName("terrain");
+
+	sea = Water(513, 0.f);
+	start = glfwGetTime();
+	sea.init();
+	end = glfwGetTime();
+	std::cout << "Time taken to generate Sea: " << (end - start) << " seconds" << std::endl;
+
+	sea.setShaderName("sea");
 }
 
 void Procedural::handleInputs() {
 	glfwPollEvents();
-	updateMouseInput();
+	
 }
 
 void Procedural::update() {
+	updateMouseInput();
 	updateCamera();
 
 	lookAtCustom();
@@ -279,6 +303,21 @@ void Procedural::render() {
 	terrain.ib->bind();
 
 	GLCall(glDrawElements(GL_TRIANGLE_STRIP, terrain.ib->getCount(), GL_UNSIGNED_INT, nullptr));
+
+	result = shaders.find("sea");
+	if (result != shaders.end()) {
+		current = &(result->second);
+	}
+
+	current->bind();
+	sea.va->bind();
+
+	sea.uniforms.back().dataMatrix[0][0] = glfwGetTime();
+	updateShaderUniform(current, sea.uniforms);
+
+	sea.ib->bind();
+
+	GLCall(glDrawElements(GL_TRIANGLE_STRIP, sea.ib->getCount(), GL_UNSIGNED_INT, nullptr));
 
 	glfwSwapBuffers(window);
 }
@@ -308,8 +347,8 @@ void Procedural::updateCamera() {
 	double clipX = deltaX / width;
 	double clipY = deltaY / height;
 
-	horizontalAngle += toRadf(180.f * 1.f * clipX);
-	verticalAngle += toRadf(180.f * 1.f * clipY);
+	horizontalAngle += toRadf(180.f * 0.5f * clipX);
+	verticalAngle += toRadf(180.f * 0.5f * clipY);
 
 	// Keeps angles within range of -2PI -> +2PI
 	// Absolutely no idea if this is better than 2 conditional branches/statements.
