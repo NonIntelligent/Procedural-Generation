@@ -33,5 +33,7 @@ public:
 	inline std::string getName() const { return name; }
 	inline unsigned int getTextureID() const { return textureID; }
 
+	void setTextureID(unsigned int id);
+	void setResourceName(const std::string name);
 };
 

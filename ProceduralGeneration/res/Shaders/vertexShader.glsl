@@ -23,9 +23,14 @@ out float heightExport;
 out vec3 viewPosition;
 out vec3 fragPos;
 
+uniform vec4 plane;
+
 void main(void)
 {
 	vec4 pos = vec4(terrainCoords, 1.0);
+
+	gl_ClipDistance[0] = dot(pos, plane);
+
 	gl_Position = proj * view * model * pos;
 	colorsExport = terrainColors;
 	normalExport = normalize(normalMat * terrainNormal);

@@ -4,6 +4,8 @@
 #include <glm/matrix.hpp>
 #include <glm/vec2.hpp>
 
+#include <iostream>
+
 void Water::buildIndexData() {
 	int i = 0;
 
@@ -76,8 +78,8 @@ void Water::buildNormalData() {
 }
 
 void Water::buildTextureData() {
-	float textureS = (float)map_size * 0.04f;
-	float textureT = (float)map_size * 0.04f;
+	float textureS = 1.f;
+	float textureT = 1.f;
 	int i = 0;
 	float scaleC, scaleR;
 
@@ -155,9 +157,20 @@ void Water::init() {
 
 	ib = new IndexBuffer(&terrainIndexData[0], (map_size - 1) * (map_size * 2) + numStrips, GL_STATIC_DRAW);
 
+	reflectionB = new FrameBuffer(GL_COLOR_ATTACHMENT0);
+	reflectionB->createTextureAttatchment(1280, 720);
+	reflectionB->createDepthBuffer(1280, 720);
+	reflectionB->checkStatus();
+
+	refractionB = new FrameBuffer(GL_COLOR_ATTACHMENT0);
+	refractionB->createTextureAttatchment(1280, 720);
+	refractionB->createDepthTextureAttatchment(1280, 720);
+	refractionB->checkStatus();
+	reflectionB->unBind(1280, 720);
+
 	mat4 modelView = mat4(1.f);
 	modelView = translate(modelView, vec3(-map_size / 2.f, 0.f, -map_size / 2.f));
-	modelView = scale(modelView, vec3(4.f, 1.5f, 4.f)); // Stretch the sea only in the x and z direction
+	modelView = scale(modelView, vec3(2.f, 1.5f, 2.f)); // Stretch the sea only in the x and z direction
 
 	ShaderUniform modelMat;
 	modelMat.name = "model";
@@ -189,12 +202,33 @@ void Water::init() {
 	u_waterTime.dataMatrix[0][0] = waveTime;
 	u_waterTime.type = UniformType::FLOAT1;
 
+	ShaderUniform u_reflectionTexture;
+	u_reflectionTexture.name = "u_reflection";
+	u_reflectionTexture.resourceName = "color_reflection";
+	u_reflectionTexture.dataMatrix[0][0] = 1.f;
+	u_reflectionTexture.type = UniformType::TEXTURE;
+
+	ShaderUniform u_refractionTexture;
+	u_refractionTexture.name = "u_refraction";
+	u_refractionTexture.resourceName = "color_refraction";
+	u_refractionTexture.dataMatrix[0][0] = 2.f;
+	u_refractionTexture.type = UniformType::TEXTURE;
+
+	ShaderUniform u_refractionDepthTexture;
+	u_refractionDepthTexture.name = "u_depth";
+	u_refractionDepthTexture.resourceName = "depth_refraction";
+	u_refractionDepthTexture.dataMatrix[0][0] = 3.f;
+	u_refractionDepthTexture.type = UniformType::TEXTURE;
+
 	uniforms.push_back(modelMat);
 	uniforms.push_back(normalMatrix);
 	uniforms.push_back(u_peakAmplitude);
 	uniforms.push_back(u_waveAmplitude);
 	uniforms.push_back(u_compression);
 
+	uniforms.push_back(u_reflectionTexture);
+	uniforms.push_back(u_refractionTexture);
+	uniforms.push_back(u_refractionDepthTexture);
 
 	uniforms.push_back(u_waterTime);
 
@@ -219,6 +253,11 @@ void Water::destroyWater() {
 	delete(ib);
 	va->unBind();
 	delete(va);
+	if (reflectionB != nullptr) {
+		reflectionB->unBind(1280, 720);
+		delete(reflectionB);
+		delete(refractionB);
+	}
 }
 
 void Water::setShaderName(std::string name) {
@@ -235,4 +274,12 @@ int Water::getMapSize() {
 
 IndexBuffer* Water::getIndexBuffer() {
 	return ib;
+}
+
+FrameBuffer* Water::getReflectionBuffer() {
+	return reflectionB;
+}
+
+FrameBuffer* Water::getRefractionBuffer() {
+	return refractionB;
 }

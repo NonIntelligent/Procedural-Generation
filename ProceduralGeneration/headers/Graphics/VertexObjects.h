@@ -127,6 +127,46 @@ public:
 	}
 };
 
+// https://www.youtube.com/watch?v=21UsMuFTN0k&list=PLRIWtICgwaX23jiqVByUs0bqhnalNTNZh&index=2
+// https://learnopengl.com/Advanced-OpenGL/Framebuffers
+class FrameBuffer {
+	unsigned int m_RendererID = 0;
+
+	// standard frame buffer attatchments
+	unsigned int m_ColorBuffer = 0;
+	unsigned int m_DepthBuffer = 0;
+
+	// Frame buffer attatchments as textures
+	unsigned int m_ColorTextureID = 0;
+	unsigned int m_DepthTextureID = 0;
+
+public:
+	FrameBuffer() { };
+	FrameBuffer(int colorAttatchment);
+	~FrameBuffer();
+
+	void bind(int width, int height) const;
+	void unBind(int width, int height) const;
+
+	void createColorBuffer(int width, int height);
+	void createDepthBuffer(int width, int height);
+
+	void createTextureAttatchment(int width, int height);
+	void createDepthTextureAttatchment(int width, int height);
+
+	bool checkIfComplete();
+
+	void checkStatus();
+
+	unsigned int getID();
+
+	unsigned int getColorBuffer();
+	unsigned int getDepthBuffer();
+
+	unsigned int getColorTexture();
+	unsigned int getDepthTexture();
+};
+
 struct Vertex {
 	glm::vec3 position;
 	glm::vec3 color;

@@ -267,6 +267,11 @@ void Terrain::init(glm::vec4 initialHeight, glm::vec3 heightBounds, float random
 	normalMatrix.dataMatrix = transpose(inverse(mat3(modelView)));
 	normalMatrix.type = UniformType::MAT3;
 
+	ShaderUniform u_clipPlane;
+	u_clipPlane.name = "plane";
+	u_clipPlane.dataMatrix[0] = vec4(0.f, -1.f, 0.f, 10.f);
+	u_clipPlane.type = UniformType::VEC4;
+
 	uniforms.push_back(modelViewMat);
 	uniforms.push_back(low);
 	uniforms.push_back(high);
@@ -276,6 +281,8 @@ void Terrain::init(glm::vec4 initialHeight, glm::vec3 heightBounds, float random
 	uniforms.push_back(textureSlot2);
 	uniforms.push_back(textureSlot3);
 	uniforms.push_back(textureSlot4);
+
+	uniforms.push_back(u_clipPlane);
 
 	va->unBind();
 	ib->unBind();
@@ -314,4 +321,10 @@ int Terrain::getMapSize() {
 
 IndexBuffer* Terrain::getIndexBuffer() {
 	return ib;
+}
+
+void Terrain::setClipPlane(glm::vec4 plane) {
+	int size = uniforms.size();
+
+	uniforms[size - 1].dataMatrix[0] = plane;
 }

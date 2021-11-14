@@ -1,5 +1,7 @@
 #include "Graphics/VertexObjects.h"
 
+#include <iostream>
+
 VertexBuffer::VertexBuffer(const void * data, unsigned int size, unsigned int count, unsigned int hint) 
 	: drawHint(hint), m_Count(count){
 
@@ -99,4 +101,144 @@ void IndexBuffer::bind() const {
 
 void IndexBuffer::unBind() const {
 	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
+}
+
+FrameBuffer::FrameBuffer(int colorAttatchment) {
+	glGenFramebuffers(1, &m_RendererID);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID);
+}
+
+FrameBuffer::~FrameBuffer() {
+	glDeleteFramebuffers(1, &m_RendererID);
+	if (m_ColorTextureID != 0) glDeleteTextures(1, &m_ColorTextureID);
+
+	if (m_DepthTextureID != 0) glDeleteTextures(1, &m_DepthTextureID);
+}
+
+void FrameBuffer::bind(int width, int height) const {
+	// Make sure no texture is bound
+	GLCall(glBindTexture(GL_TEXTURE_2D, 0));
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID);
+	glViewport(0, 0, width, height);
+}
+
+void FrameBuffer::unBind(int width, int height) const {
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, width, height);
+}
+
+void FrameBuffer::createColorBuffer(int width, int height) {
+	glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID);
+
+	GLCall(glGenRenderbuffers(1, &m_ColorBuffer));
+	GLCall(glBindRenderbuffer(GL_RENDERBUFFER, m_ColorBuffer));
+	GLCall(glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, width, height));
+	GLCall(glBindRenderbuffer(GL_RENDERBUFFER, 0));
+	GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, m_ColorBuffer));
+}
+
+void FrameBuffer::createDepthBuffer(int width, int height) {
+	glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID);
+
+	GLCall(glGenRenderbuffers(1, &m_DepthBuffer));
+	GLCall(glBindRenderbuffer(GL_RENDERBUFFER, m_DepthBuffer));
+	GLCall(glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, width, height));
+	GLCall(glBindRenderbuffer(GL_RENDERBUFFER, 0));
+	GLCall(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_DepthBuffer));
+}
+
+void FrameBuffer::createTextureAttatchment(int width, int height) {
+	glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID);
+
+	GLCall(glGenTextures(1, &m_ColorTextureID));
+	GLCall(glBindTexture(GL_TEXTURE_2D, m_ColorTextureID));
+
+	// Linearlly choose and scale the texture pixel
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+
+	// Wrap horizontally and vertically by clamp
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+
+	GLCall(glGenerateMipmap(GL_TEXTURE_2D));
+
+	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0));
+
+	GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ColorTextureID, 0));
+}
+
+void FrameBuffer::createDepthTextureAttatchment(int width, int height) {
+	glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID);
+
+	GLCall(glGenTextures(1, &m_DepthTextureID));
+	GLCall(glBindTexture(GL_TEXTURE_2D, m_DepthTextureID));
+
+	// Linearlly choose and scale the texture pixel
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+
+	// Wrap horizontally and vertically by clamp
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+	GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+
+	GLCall(glGenerateMipmap(GL_TEXTURE_2D));
+
+	GLCall(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0));
+
+	GLCall(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_DepthTextureID, 0));
+}
+
+bool FrameBuffer::checkIfComplete() {
+	return glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+}
+
+void FrameBuffer::checkStatus() {
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID));
+	auto fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+	if (fboStatus == GL_FRAMEBUFFER_COMPLETE) {
+		std::cout << "SUCCESS: FrameBuffer is complete!" << std::endl;
+		GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+		return;
+	}
+
+	if (fboStatus != GL_FRAMEBUFFER_COMPLETE) {
+		std::cout << "ERROR: FrameBuffer is not complete" << std::endl;
+	}
+
+	if (fboStatus == GL_FRAMEBUFFER_UNSUPPORTED) {
+		std::cout << "ERROR: FrameBuffer implementation is unsupported by driver" << std::endl;
+	}
+
+	if (fboStatus == GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT) {
+		std::cout << "ERROR: FrameBuffer attachments are missing" << std::endl;
+	}
+
+	if (fboStatus == GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT) {
+		std::cout << "ERROR: FrameBuffer attachments are incomplete" << std::endl;
+	}
+
+	GLCall(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+}
+
+unsigned int FrameBuffer::getID() {
+	return m_RendererID;
+}
+
+unsigned int FrameBuffer::getColorBuffer() {
+	return m_ColorBuffer;
+}
+
+unsigned int FrameBuffer::getDepthBuffer() {
+	return m_DepthBuffer;
+}
+
+unsigned int FrameBuffer::getColorTexture() {
+	return m_ColorTextureID;
+}
+
+unsigned int FrameBuffer::getDepthTexture() {
+	return m_DepthTextureID;
 }

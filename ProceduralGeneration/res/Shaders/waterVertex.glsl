@@ -23,47 +23,37 @@ uniform float waveTime;
 flat out vec3 colorsExport;
 out vec3 normalExport;
 out vec2 uvExport;
-out float heightExport;
 
 out vec3 viewPosition;
 out vec3 fragPos;
+out vec4 clipSpace;
 
 void main(void)
 {
 	vec4 pos = vec4(terrainCoords, 1.0);
 
-	pos.y += waveAmplitude * (sin(compression * (pos.x + waveTime)) + peakAmplitude * cos(4.f * pos.z + waveTime));
+	float waveFunction = waveAmplitude * (sin(compression * (pos.x + waveTime)) + peakAmplitude * cos(4.f * pos.z + waveTime));
 
-	float normalGradient = -16.f * peakAmplitude * cos(4.f * pos.z + waveTime) 
-	- waveAmplitude * compression * compression * sin(compression * (pos.x + waveTime));
-
-	float secondDerivative = waveAmplitude * compression * cos(compression * (pos.x + waveTime)) 
+	float firstDerivative1 = waveAmplitude * compression * cos(compression * (pos.x + waveTime)) 
 	- 4.f * peakAmplitude * sin(4.f * pos.z + waveTime);
 
-	bool bothPositive = secondDerivative > 0.f && normalGradient > 0.f;
-	bool bothNegative = secondDerivative < 0.f && normalGradient < 0.f;
+	float firstDerivative2 = waveAmplitude * compression * cos(compression * (pos.x + 0.1 + waveTime)) 
+	- 4.f * peakAmplitude * sin(4.f * (pos.z + 0.1) + waveTime);
 
-	if (secondDerivative == 0.f) normalGradient = 0.f;
-	else if (bothPositive || bothNegative) normalGradient *= -1.f;
+	float firstDerivative3 = waveAmplitude * compression * cos(compression * (pos.x - 0.1 + waveTime)) 
+	- 4.f * peakAmplitude * sin(4.f * (pos.z - 0.1) + waveTime);
 
-	vec3 norm;
+	vec3 norm1 = vec3(-firstDerivative1, 1.f, 0.f);
+	vec3 norm2 = vec3(-firstDerivative2, 1.f, 0.f);
+	vec3 norm3 = vec3(-firstDerivative3, 1.f, 0.f);
 
-	if (normalGradient != 0.f) {
-		float val1 = normalGradient * pos.x;
-		float val2 = normalGradient * (pos.x + 1.f);
-		vec3 norm = vec3(1.f, val2 - val1, 0.f);
-	}
-	else {
-		norm = vec3(0.f, 1.f, 0.f);
-	}
-
-
+	vec3 norm = (norm1 + norm2 + norm3) / 3;
 
 	gl_Position = proj * view * model * pos;
+	clipSpace = gl_Position;
 	colorsExport = terrainColors;
 	normalExport = norm;
 	uvExport = terrainUV;
-	heightExport = terrainCoords.y;
 
 	viewPosition = viewPos;
 	fragPos = vec3(model * vec4(terrainCoords, 1.f));

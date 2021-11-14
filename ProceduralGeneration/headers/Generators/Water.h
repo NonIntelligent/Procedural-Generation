@@ -23,6 +23,8 @@ public:
 	VertexArray* va = nullptr;
 	VertexBuffer* vb = nullptr;
 	IndexBuffer* ib = nullptr;
+	FrameBuffer* reflectionB = nullptr;
+	FrameBuffer* refractionB = nullptr;
 	std::vector<ShaderUniform> uniforms;
 
 	// Supply to shader simulate waves
@@ -41,5 +43,9 @@ public:
 	std::string getShaderName();
 	int getMapSize();
 	IndexBuffer* getIndexBuffer();
+
+	FrameBuffer* getReflectionBuffer();
+	FrameBuffer* getRefractionBuffer();
+
 };
 

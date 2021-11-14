@@ -171,8 +171,20 @@ void Procedural::lookAtCustom() {
 	lookAtMat[3] = vec4(dotPos, 1);
 }
 
+void Procedural::calcLookAtDir() {
+	vec3 direction;
+
+	// Direction vector in world coordinates.
+	direction.x = cosf(verticalAngle) * -sinf(horizontalAngle);
+	direction.y = sinf(verticalAngle);
+	direction.z = cosf(verticalAngle) * cosf(horizontalAngle);
+
+	// Set new target position from origin.
+	lookAtDir = direction;
+}
+
 Procedural::Procedural() {
-	threads.reserve(threadCount);
+
 }
 
 Procedural::~Procedural() {
@@ -202,12 +214,14 @@ bool Procedural::init() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	glEnable(GL_CLIP_DISTANCE0);
+
 	//glEnable(GL_CULL_FACE);
 
 	glEnable(GL_PRIMITIVE_RESTART);
 	glPrimitiveRestartIndex(0xffffffff);
 
-	perspectiveMat = perspective(radians(60.0), (double) width / height, 0.1, 1000.0);
+	perspectiveMat = perspective(radians(60.0), (double) width / height, 1.0, 1000.0);
 	lookAtCustom();
 
 	setupGlobalUniforms();
@@ -233,6 +247,25 @@ bool Procedural::init() {
 	textures.push_back(texture);
 
 	createObjects();
+
+	// Textures for fbo in water
+	texture = Texture();
+	auto buffer = sea.getReflectionBuffer();
+	texture.setTextureID(buffer->getColorTexture());
+	texture.setResourceName("color_reflection");
+	textures.push_back(texture);
+
+	texture = Texture();
+	buffer = sea.getRefractionBuffer();
+	texture.setTextureID(buffer->getColorTexture());
+	texture.setResourceName("color_refraction");
+	textures.push_back(texture);
+
+	texture = Texture();
+	texture.setTextureID(buffer->getDepthTexture());
+	texture.setResourceName("depth_refraction");
+	textures.push_back(texture);
+
 
 	return true;
 }
@@ -261,7 +294,7 @@ void Procedural::createObjects(){
 	std::cout << "Time taken to generate Terrain: " << (end - start) << " seconds" << std::endl;
 	terrain.setShaderName("terrain");
 
-	sea = Water(513, 0.f);
+	sea = Water(1025, 0.f);
 	start = glfwGetTime();
 	sea.init();
 	end = glfwGetTime();
@@ -280,14 +313,57 @@ void Procedural::update() {
 	updateCamera();
 
 	lookAtCustom();
-
-	updateCameraUniform();
 }
 
 void Procedural::render() {
 	glClearColor(1.f, 1.f, 1.f, 0.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	// render to other frame buffers i.e. water reflection
+	sea.getReflectionBuffer()->bind(1280, 720);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// Set clipping planes to render everything above sea level
+	terrain.setClipPlane({0.f, 1.f, 0.f, -sea.seaLevel});
+	// Move camera for reflection render
+	float distance = 2 * cameraPos.y - sea.seaLevel;
+
+	cameraPos.y -= distance;
+	verticalAngle *= -1.f;
+	calcLookAtDir();
+	lookAtCustom();
+	updateCameraUniform();
+
+	renderTerrain();
+	renderTrees();
+	renderGrass();
+
+	// Return camera to original position
+	cameraPos.y += distance;
+	verticalAngle *= -1.f;
+	calcLookAtDir();
+	lookAtCustom();
+	updateCameraUniform();
+
+	sea.getRefractionBuffer()->bind(1280, 720);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	terrain.setClipPlane({0.f, -1.f, 0.f, sea.seaLevel});
+	renderTerrain();
+	renderTrees();
+	renderGrass();
+
+	// Render to main frame buffer
+	sea.getReflectionBuffer()->unBind(1280, 720); // unbind to use main buffer
+	terrain.setClipPlane({0.f, 0.f, 0.f, 0.f});
+	renderTerrain();
+	renderTrees();
+	renderGrass();
+
+	renderWater();
+
+	glfwSwapBuffers(window);
+}
+
+void Procedural::renderTerrain() {
 	Shader* current = nullptr;
 
 	auto result = shaders.find("terrain");
@@ -297,14 +373,26 @@ void Procedural::render() {
 
 	current->bind();
 	terrain.va->bind();
-	
+
 	updateShaderUniform(current, terrain.uniforms);
 
 	terrain.ib->bind();
 
 	GLCall(glDrawElements(GL_TRIANGLE_STRIP, terrain.ib->getCount(), GL_UNSIGNED_INT, nullptr));
+}
 
-	result = shaders.find("sea");
+void Procedural::renderTrees() {
+
+}
+
+void Procedural::renderGrass() {
+
+}
+
+void Procedural::renderWater() {
+	Shader* current = nullptr;
+
+	auto result = shaders.find("sea");
 	if (result != shaders.end()) {
 		current = &(result->second);
 	}
@@ -318,8 +406,6 @@ void Procedural::render() {
 	sea.ib->bind();
 
 	GLCall(glDrawElements(GL_TRIANGLE_STRIP, sea.ib->getCount(), GL_UNSIGNED_INT, nullptr));
-
-	glfwSwapBuffers(window);
 }
 
 Texture Procedural::findTexture(const std::string& name) {
@@ -340,8 +426,6 @@ void Procedural::updateCamera() {
 	cameraPos += xaxis * movementDir.x * cameraSpeed * 0.0333f;
 	cameraPos += UP * movementDir.y * cameraSpeed * 0.0333f;
 	cameraPos += zaxis * movementDir.z * cameraSpeed * 0.0333f;
-
-	vec3 direction;
 
 	// Convert screen space offset to clip space.
 	double clipX = deltaX / width;
@@ -364,13 +448,7 @@ void Procedural::updateCamera() {
 		verticalAngle = -1.309f;
 	}
 
-	// Direction vector in world coordinates.
-	direction.x = cosf(verticalAngle) * -sinf(horizontalAngle);
-	direction.y = sinf(verticalAngle);
-	direction.z = cosf(verticalAngle) * cosf(horizontalAngle);
-
-	// Set new target position from origin.
-	lookAtDir = direction;
+	calcLookAtDir();
 }
 
 void Procedural::updateShaderUniform(Shader* shader, const std::vector<ShaderUniform>& uniforms) {

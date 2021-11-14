@@ -111,3 +111,11 @@ void Texture::deleteTexture() {
 	active = false;
 	GLCall(glDeleteTextures(1, &textureID));
 }
+
+void Texture::setTextureID(unsigned int id) {
+	this->textureID = id;
+}
+
+void Texture::setResourceName(const std::string name) {
+	this->name = name;
+}

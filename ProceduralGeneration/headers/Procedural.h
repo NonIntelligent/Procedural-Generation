@@ -19,8 +19,6 @@
 #include <vector>
 #include <unordered_map>
 
-const int CORE_COUNT = std::thread::hardware_concurrency();
-
 using namespace glm;
 
 class Procedural {
@@ -30,10 +28,8 @@ class Procedural {
 	const nanoSeconds NS_PER_TICK = nanoSeconds(32222us);
 	long targetFps = 8000;
 	volatile bool running = false;
-	const int threadCount = CORE_COUNT == 0 ? 12 : CORE_COUNT;
 	double frameSamples[60] = {0.0};
 	int frameSampleIndex = 0;
-	std::vector<std::thread> threads;
 	int keys[GLFW_KEY_LAST] = {0};
 
 	// Objects
@@ -70,6 +66,8 @@ class Procedural {
 
 	void lookAtCustom();
 
+	void calcLookAtDir();
+
 public:
 	Procedural();
 	~Procedural();
@@ -82,6 +80,11 @@ public:
 	void handleInputs();
 	void update();
 	void render();
+
+	void renderTerrain();
+	void renderTrees();
+	void renderGrass();
+	void renderWater();
 
 	Texture findTexture(const std::string& name);
 
