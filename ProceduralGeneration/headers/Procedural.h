@@ -3,6 +3,7 @@
 #include "Graphics/Shader.h"
 #include "Generators/Terrain.h"
 #include "Generators/Water.h"
+#include "Generators/Grass.h"
 #include "Graphics/Texture.h"
 #include "macros/Definitions.h"
 
@@ -35,6 +36,7 @@ class Procedural {
 	// Objects
 	Terrain terrain;
 	Water sea;
+	Grass grass;
 	std::unordered_map<std::string, Shader> shaders;
 	std::vector<Texture> textures;
 

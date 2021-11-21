@@ -48,6 +48,9 @@
     <ClCompile Include="src\Generators\Water.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Generators\Grass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers\Vendor\Algorithms.h">
@@ -89,9 +92,17 @@
     <ClInclude Include="headers\Generators\Water.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="headers\Generators\Grass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\Shaders\waterVertex.glsl" />
+    <None Include="res\Shaders\grassVertex.glsl" />
+    <None Include="res\Shaders\TerrainFragment.glsl" />
+    <None Include="res\Shaders\vertexShader.glsl" />
     <None Include="res\Shaders\waterFragment.glsl" />
+    <None Include="res\Shaders\waterVertex.glsl" />
+    <None Include="res\Shaders\grassGeometry.glsl" />
+    <None Include="res\Shaders\grassFragment.glsl" />
   </ItemGroup>
 </Project>

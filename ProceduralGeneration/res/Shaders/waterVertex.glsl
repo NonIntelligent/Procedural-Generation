@@ -13,7 +13,6 @@ layout(std140, binding = 0) uniform camera
 };
 
 uniform mat4 model;
-uniform mat3 normalMat;
 
 uniform float waveAmplitude;
 uniform float peakAmplitude;
@@ -34,20 +33,10 @@ void main(void)
 
 	float waveFunction = waveAmplitude * (sin(compression * (pos.x + waveTime)) + peakAmplitude * cos(4.f * pos.z + waveTime));
 
-	float firstDerivative1 = waveAmplitude * compression * cos(compression * (pos.x + waveTime)) 
+	float firstDerivative = waveAmplitude * compression * cos(compression * (pos.x + waveTime)) 
 	- 4.f * peakAmplitude * sin(4.f * pos.z + waveTime);
 
-	float firstDerivative2 = waveAmplitude * compression * cos(compression * (pos.x + 0.1 + waveTime)) 
-	- 4.f * peakAmplitude * sin(4.f * (pos.z + 0.1) + waveTime);
-
-	float firstDerivative3 = waveAmplitude * compression * cos(compression * (pos.x - 0.1 + waveTime)) 
-	- 4.f * peakAmplitude * sin(4.f * (pos.z - 0.1) + waveTime);
-
-	vec3 norm1 = vec3(-firstDerivative1, 1.f, 0.f);
-	vec3 norm2 = vec3(-firstDerivative2, 1.f, 0.f);
-	vec3 norm3 = vec3(-firstDerivative3, 1.f, 0.f);
-
-	vec3 norm = (norm1 + norm2 + norm3) / 3;
+	vec3 norm = vec3(-firstDerivative, 1.f, 0.f);
 
 	gl_Position = proj * view * model * pos;
 	clipSpace = gl_Position;

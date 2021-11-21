@@ -60,13 +60,13 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);GLEW_STATIC</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)headers\;$(SolutionDir)libraries\glm\;$(SolutionDir)libraries\glew-2.1.0\include\;$(SolutionDir)libraries\glfw-3.3.5\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)headers\;$(SolutionDir)libraries\glm\;$(SolutionDir)libraries\glew-2.1.0\include\;$(SolutionDir)libraries\glfw-3.3.5\include\;$(SolutionDir)libraries\libNoise\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libraries\glew-2.1.0\lib\Release\x64\;$(SolutionDir)libraries\glfw-3.3.5\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glew32s.lib;glfw3_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)libraries\glew-2.1.0\lib\Release\x64\;$(SolutionDir)libraries\glfw-3.3.5\lib\;$(SolutionDir)libraries\libNoise\lib\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glew32s.lib;libnoise.lib;glfw3_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -78,18 +78,19 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);GLEW_STATIC</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)headers\;$(SolutionDir)libraries\glm\;$(SolutionDir)libraries\glew-2.1.0\include\;$(SolutionDir)libraries\glfw-3.3.5\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)headers\;$(SolutionDir)libraries\glm\;$(SolutionDir)libraries\glew-2.1.0\include\;$(SolutionDir)libraries\glfw-3.3.5\include\;$(SolutionDir)libraries\libNoise\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)libraries\glew-2.1.0\lib\Release\x64\;$(SolutionDir)libraries\glfw-3.3.5\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glew32s.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)libraries\glew-2.1.0\lib\Release\x64\;$(SolutionDir)libraries\glfw-3.3.5\lib\;$(SolutionDir)libraries\libNoise\lib\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glew32s.lib;libnoise.lib;glfw3.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Generators\Grass.cpp" />
     <ClCompile Include="src\Generators\GenerateAlgorithms.cpp" />
     <ClCompile Include="headers\Vendor\stb_image.cpp" />
     <ClCompile Include="src\Graphics\Texture.cpp" />
@@ -103,6 +104,7 @@
     <ClCompile Include="src\Generators\Water.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="headers\Generators\Grass.h" />
     <ClInclude Include="headers\Graphics\Shader.h" />
     <ClInclude Include="headers\Graphics\Texture.h" />
     <ClInclude Include="headers\Graphics\VertexObjects.h" />
@@ -118,6 +120,11 @@
     <ClInclude Include="headers\Generators\Water.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="res\Shaders\grassFragment.glsl" />
+    <None Include="res\Shaders\grassGeometry.glsl" />
+    <None Include="res\Shaders\grassVertex.glsl" />
+    <None Include="res\Shaders\TerrainFragment.glsl" />
+    <None Include="res\Shaders\vertexShader.glsl" />
     <None Include="res\Shaders\waterFragment.glsl" />
     <None Include="res\Shaders\waterVertex.glsl" />
   </ItemGroup>

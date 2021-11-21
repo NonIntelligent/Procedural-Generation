@@ -27,6 +27,8 @@ public:
 	IndexBuffer* ib = nullptr;
 	std::vector<ShaderUniform> uniforms;
 
+	mat4 modelView = mat4(1.f);
+
 	Terrain() : MAP_SIZE(33), SEED(123456789) {};
 	Terrain(int mapSize, unsigned int seed);
 
@@ -44,6 +46,7 @@ public:
 	std::string getShaderName();
 	int getMapSize();
 	IndexBuffer* getIndexBuffer();
+	Vertex* getVertices();
 
 	void setClipPlane(glm::vec4 plane);
 };

@@ -1,7 +1,7 @@
 #include "Generators/GenerateAlgorithms.h"
 
 #include <glm/vec3.hpp>
-#include <glm/gtc/noise.hpp>
+#include <noise/noise.h>
 #include <glm/geometric.hpp>
 
 #include <cstdlib>
@@ -130,9 +130,10 @@ void Generate::DiamondSquare(float** arr, int size, const int maxSize, float ran
 }
 
 void Generate::PerlinNoise(float** arr, int maxSize, int octaves, float h, float minHeight, float maxHeight) {
+
 	for (int x = 0; x < maxSize; x++) {
 		for (int z = 0; z < maxSize; z++) {
-			float nx = (float) x / maxSize - 0.5f, nz = (float) z / maxSize - 0.5f;
+			double nx = x / maxSize - 0.5, nz = z / maxSize - 0.5;
 
 			float amplitude = 1.f;
 			float scalar = 1.f;
@@ -141,7 +142,7 @@ void Generate::PerlinNoise(float** arr, int maxSize, int octaves, float h, float
 
 			// Combine multiple frequencies
 			for (int i = 0; i < octaves; i++) {
-				result += amplitude * glm::abs(glm::perlin(glm::vec2(scalar * nx, scalar * nz)));
+				result += amplitude * scalar * nx * scalar* nz * 0.0;
 				divideSum += amplitude;
 				amplitude *= 0.5f;
 				scalar *= 2.f;

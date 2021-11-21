@@ -31,50 +31,7 @@ void Water::buildIndexData() {
 }
 
 void Water::buildNormalData() {
-	unsigned int index1, index2, index3, jump, offset = 0;
-	float dot_value;
-	vec3 pt1, pt2, pt3, ttVec, edge1, edge2, normal, up = {0.f,1.f,0.f};
 
-	for (int x = 0; x < map_size - 1; x++) {
-		jump = x * map_size * 2 + offset++;
-
-		for (int z = 0; z < map_size * 2 - 2; z++) {
-			index1 = terrainIndexData[z + jump];
-			index2 = terrainIndexData[z + jump + 1];
-			index3 = terrainIndexData[z + jump + 2];
-
-			pt1 = vertices[index1].position;
-			pt2 = vertices[index2].position;
-			pt3 = vertices[index3].position;
-
-			edge1 = pt2 - pt1;
-			edge2 = pt3 - pt1;
-
-			// Consistent normals upwards
-			if (x % 2 == 1)
-				ttVec = cross(edge2, edge1);
-			else
-				ttVec = cross(edge1, edge2);
-
-			dot_value = dot(ttVec, up);
-			if (dot_value < 0.000001f)
-				normal = -ttVec;
-			else
-				normal = ttVec;
-
-			// add normals to smooth later
-			vertices[index1].normal = normal + vertices[index1].normal;
-			vertices[index2].normal = normal + vertices[index2].normal;
-			vertices[index3].normal = normal + vertices[index3].normal;
-		}
-	}
-
-	// Smooth normals and normalize
-	int total = map_size * map_size;
-
-	for (int i = 0; i < total - 1; i++) {
-		vertices[i].normal = normalize(vertices[i].normal);
-	}
 }
 
 void Water::buildTextureData() {
@@ -177,24 +134,19 @@ void Water::init() {
 	modelMat.dataMatrix = modelView;
 	modelMat.type = UniformType::MAT4;
 
-	ShaderUniform normalMatrix;
-	normalMatrix.name = "normalMat";
-	normalMatrix.dataMatrix = transpose(inverse(mat3(modelView)));
-	normalMatrix.type = UniformType::MAT3;
-
 	ShaderUniform u_waveAmplitude;
 	u_waveAmplitude.name = "waveAmplitude";
-	u_waveAmplitude.dataMatrix[0][0] = 1.0f;
+	u_waveAmplitude.dataMatrix[0][0] = 1.7f;
 	u_waveAmplitude.type = UniformType::FLOAT1;
 
 	ShaderUniform u_peakAmplitude;
 	u_peakAmplitude.name = "peakAmplitude";
-	u_peakAmplitude.dataMatrix[0][0] = 0.3f;
+	u_peakAmplitude.dataMatrix[0][0] = 0.1f;
 	u_peakAmplitude.type = UniformType::FLOAT1;
 
 	ShaderUniform u_compression;
 	u_compression.name = "compression";
-	u_compression.dataMatrix[0][0] = 1.f;
+	u_compression.dataMatrix[0][0] = 0.5f;
 	u_compression.type = UniformType::FLOAT1;
 
 	ShaderUniform u_waterTime;
@@ -221,7 +173,6 @@ void Water::init() {
 	u_refractionDepthTexture.type = UniformType::TEXTURE;
 
 	uniforms.push_back(modelMat);
-	uniforms.push_back(normalMatrix);
 	uniforms.push_back(u_peakAmplitude);
 	uniforms.push_back(u_waveAmplitude);
 	uniforms.push_back(u_compression);

@@ -14,29 +14,35 @@ layout(std140, binding = 0) uniform camera
 
 uniform mat4 model;
 uniform mat3 normalMat;
-
-flat out vec3 colorsExport;
-out vec3 normalExport;
-out vec2 uvExport;
-out float heightExport;
-
-out vec3 viewPosition;
-out vec3 fragPos;
-
 uniform vec4 plane;
 
-void main(void)
+out EXPORT
+{
+	vec3 norm;
+	vec3 colors;
+	vec3 viewPosition;
+	vec3 fragPos;
+} export;
+
+out 	vec2 uv;
+out		float height;
+out		int type;
+
+void main()
 {
 	vec4 pos = vec4(terrainCoords, 1.0);
 
 	gl_ClipDistance[0] = dot(pos, plane);
 
-	gl_Position = proj * view * model * pos;
-	colorsExport = terrainColors;
-	normalExport = normalize(normalMat * terrainNormal);
-	uvExport = terrainUV;
-	heightExport = terrainCoords.y;
+	export.colors = terrainColors;
+	export.norm = normalize(normalMat * terrainNormal);
+	uv = terrainUV;
+	height = terrainCoords.y;
 
-	viewPosition = viewPos;
-	fragPos = vec3(model * vec4(terrainCoords, 1.f));
+	export.viewPosition = viewPos;
+	export.fragPos = vec3(model * vec4(terrainCoords, 1.f));
+
+	type = 1;
+
+	gl_Position = proj * view * model * pos;
 }

@@ -64,12 +64,14 @@ GLuint Shader::compileShader(GLuint type, const std::string& sourceCode) {
 
 	// If compile failed the print out error
 	if(result == GL_FALSE) {
+		std::string shader = type == GL_VERTEX_SHADER ? "vertex" : "fragment";
+		shader = type == GL_GEOMETRY_SHADER ? "geometry" : "compute";
+
 		int length;
 		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
 		char* message = (char*)alloca(length * sizeof(char));
 		glGetShaderInfoLog(id, length, &length, message);
-		std::cout << "Failed to compile " <<
-			(type == GL_VERTEX_SHADER ? "vertex" : "fragment") << " shader" << std::endl;
+		std::cout << "Failed to compile " << shader << " shader" << std::endl;
 		std::cout << message << std::endl;
 		glDeleteShader(id);
 		return 0;

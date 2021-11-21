@@ -56,7 +56,7 @@ void main(void)
 
 	vec4 reflectColour = texture(u_reflection, reflectTexCoords);
 	vec4 refractColour = texture(u_refraction, refractTexCoords);
-	refractColour = mix(refractColour, vec4(0.0, 0.5, 0.8, 1.0), clamp(waterDepth / 120.0, 0.0, 1.0));
+	refractColour = mix(refractColour, vec4(0.0, 0.05, 0.25, 1.0), clamp(waterDepth / 120.0, 0.0, 1.0));
 
 	lightDirection = normalize(position);
 	view = normalize(viewPosition - fragPos);
@@ -64,7 +64,7 @@ void main(void)
 	vec3 result = calcSpec(normal, lightDirection, view);
 
 	colorsOut = mix(reflectColour, refractColour, 0.5);
-	colorsOut = mix(colorsOut, vec4(0.0, 0.3, 0.75, 1.0), 0.25) + vec4(result, 0.0);
+	colorsOut = mix(colorsOut, vec4(0.0, 0.3, 0.75, 1.0), 0.25);
 	colorsOut.a = clamp(waterDepth / 5.0, 0.0, 1.0);
 }
 

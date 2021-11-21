@@ -194,6 +194,8 @@ Procedural::~Procedural() {
 	shaders.clear();
 
 	terrain.destroyTerrain();
+	sea.destroyWater();
+	grass.destroyGrass();
 
 	glfwTerminate();
 }
@@ -273,6 +275,7 @@ bool Procedural::init() {
 void Procedural::createShaders() {
 	Shader shader;
 	shader.parseShader("res/Shaders/vertexShader.glsl", GL_VERTEX_SHADER);
+	shader.parseShader("res/Shaders/grassGeometry.glsl", GL_GEOMETRY_SHADER);
 	shader.parseShader("res/Shaders/TerrainFragment.glsl", GL_FRAGMENT_SHADER);
 	shader.createShader();
 
@@ -284,10 +287,17 @@ void Procedural::createShaders() {
 	shader.createShader();
 
 	shaders["sea"] = shader;
+	
+	shader = Shader();
+	shader.parseShader("res/Shaders/grassVertex.glsl", GL_VERTEX_SHADER);
+	shader.parseShader("res/Shaders/grassGeometry.glsl", GL_GEOMETRY_SHADER);
+	shader.parseShader("res/Shaders/grassFragment.glsl", GL_FRAGMENT_SHADER);
+
+	shaders["grass"] = shader;
 }
 
 void Procedural::createObjects(){
-	terrain = Terrain(513, high_res_clock::now().time_since_epoch().count());
+	terrain = Terrain(513, 847866344);
 	double start = glfwGetTime();
 	terrain.init(vec4(25.f), vec3(4.f, 16.f, 32.f), 45.f, 1.1f);
 	double end = glfwGetTime();
@@ -301,6 +311,14 @@ void Procedural::createObjects(){
 	std::cout << "Time taken to generate Sea: " << (end - start) << " seconds" << std::endl;
 
 	sea.setShaderName("sea");
+
+	grass = Grass(terrain.getVertices(), terrain.getMapSize() * terrain.getMapSize(), 4.f, 16.f);
+	start = glfwGetTime();
+	grass.init(terrain.modelView);
+	end = glfwGetTime();
+	std::cout << "Time taken to generate Grass: " << (end - start) << " seconds" << std::endl;
+
+	grass.setShaderName("grass");
 }
 
 void Procedural::handleInputs() {
@@ -311,6 +329,11 @@ void Procedural::handleInputs() {
 void Procedural::update() {
 	updateMouseInput();
 	updateCamera();
+
+	// Lock camera position for benchmarking
+	cameraPos.x = 434.5f;
+	cameraPos.y = 162.0f;
+	cameraPos.z = -3.05f;
 
 	lookAtCustom();
 }
@@ -324,39 +347,43 @@ void Procedural::render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// Set clipping planes to render everything above sea level
 	terrain.setClipPlane({0.f, 1.f, 0.f, -sea.seaLevel});
+	grass.setClipPlane({0.f, 1.f, 0.f, -sea.seaLevel});
 	// Move camera for reflection render
 	float distance = 2 * cameraPos.y - sea.seaLevel;
 
 	cameraPos.y -= distance;
 	verticalAngle *= -1.f;
 	calcLookAtDir();
+	// Lock camera direction for more reliable benchmark comparisons
+	lookAtDir = glm::vec3(-0.35f, -0.42f, 0.83f);
 	lookAtCustom();
 	updateCameraUniform();
 
 	renderTerrain();
-	renderTrees();
-	renderGrass();
+	//renderGrass();
 
 	// Return camera to original position
 	cameraPos.y += distance;
 	verticalAngle *= -1.f;
 	calcLookAtDir();
+	lookAtDir = glm::vec3(-0.35f, -0.42f, 0.83f);
 	lookAtCustom();
 	updateCameraUniform();
 
 	sea.getRefractionBuffer()->bind(1280, 720);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	terrain.setClipPlane({0.f, -1.f, 0.f, sea.seaLevel});
+	grass.setClipPlane({0.f, -1.f, 0.f, sea.seaLevel});
 	renderTerrain();
-	renderTrees();
-	renderGrass();
+	//renderGrass();
 
 	// Render to main frame buffer
 	sea.getReflectionBuffer()->unBind(1280, 720); // unbind to use main buffer
 	terrain.setClipPlane({0.f, 0.f, 0.f, 0.f});
+	grass.setClipPlane({0.f, 0.f, 0.f, 0.f});
 	renderTerrain();
 	renderTrees();
-	renderGrass();
+	//renderGrass();
 
 	renderWater();
 
@@ -386,7 +413,20 @@ void Procedural::renderTrees() {
 }
 
 void Procedural::renderGrass() {
+	Shader* current = nullptr;
 
+	auto result = shaders.find("terrain");
+	if (result != shaders.end()) {
+		current = &(result->second);
+	}
+
+	current->bind();
+	grass.va->bind();
+
+	grass.uniforms.back().dataMatrix[0][0] = glfwGetTime();
+	updateShaderUniform(current, grass.uniforms);
+
+	GLCall(glDrawArrays(GL_POINTS, 0, grass.getVerticesCount()))
 }
 
 void Procedural::renderWater() {
@@ -591,7 +631,7 @@ void Procedural::mainLoop() {
 				}
 				tenSecondAverage /= 60;
 
-				std::cout << "average time to render last 60 seconds = " << (tenSecondAverage) / frames << "s" << std::endl;
+				std::cout << "average time to render last 60 seconds = " << (tenSecondAverage * 1000.f) / frames << "ms" << std::endl;
 
 				frameSampleIndex = 0;
 			}
@@ -609,6 +649,8 @@ void Procedural::mainLoop() {
 	}
 }
 
+bool wireframeMode = false;
+
 void Procedural::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
 	switch (action) {
 	case GLFW_PRESS:
@@ -622,6 +664,17 @@ void Procedural::key_callback(GLFWwindow* window, int key, int scancode, int act
 
 		if (key == GLFW_KEY_ESCAPE) {
 			glfwSetWindowShouldClose(window, GLFW_TRUE);
+		}
+
+		if (key == GLFW_KEY_F) {
+			if (!wireframeMode) {
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			}
+			else {
+				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			}
+
+			wireframeMode = !wireframeMode;
 		}
 
 		break;
