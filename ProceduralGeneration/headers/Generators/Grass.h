@@ -17,6 +17,7 @@ class Grass {
 public:
 	VertexArray* va = nullptr;
 	VertexBuffer* vb = nullptr;
+	IndexBuffer* ib = nullptr;
 	std::vector<ShaderUniform> uniforms;
 
 	float windTime = 0.f;

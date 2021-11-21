@@ -185,3 +185,7 @@ struct VertexTexture {
 	glm::vec3 normal;
 	glm::vec2 textcoord;
 };
+
+struct VertexBasic {
+	glm::vec3 position;
+};

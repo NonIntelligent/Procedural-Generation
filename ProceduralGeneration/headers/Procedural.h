@@ -4,6 +4,7 @@
 #include "Generators/Terrain.h"
 #include "Generators/Water.h"
 #include "Generators/Grass.h"
+#include "Graphics/Skybox.h"
 #include "Graphics/Texture.h"
 #include "macros/Definitions.h"
 
@@ -37,6 +38,7 @@ class Procedural {
 	Terrain terrain;
 	Water sea;
 	Grass grass;
+	Skybox skybox;
 	std::unordered_map<std::string, Shader> shaders;
 	std::vector<Texture> textures;
 
@@ -87,6 +89,7 @@ public:
 	void renderTrees();
 	void renderGrass();
 	void renderWater();
+	void renderSkybox();
 
 	Texture findTexture(const std::string& name);
 

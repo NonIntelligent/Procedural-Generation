@@ -68,6 +68,8 @@ void Grass::destroyGrass() {
 	delete(vb);
 	va->unBind();
 	delete(va);
+	ib->unBind();
+	delete(ib);
 }
 
 std::string Grass::getShaderName() {

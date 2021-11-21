@@ -51,6 +51,9 @@
     <ClCompile Include="src\Generators\Grass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\Skybox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="headers\Vendor\Algorithms.h">
@@ -95,6 +98,9 @@
     <ClInclude Include="headers\Generators\Grass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="headers\Graphics\Skybox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\Shaders\grassVertex.glsl" />
@@ -104,5 +110,7 @@
     <None Include="res\Shaders\waterVertex.glsl" />
     <None Include="res\Shaders\grassGeometry.glsl" />
     <None Include="res\Shaders\grassFragment.glsl" />
+    <None Include="res\Shaders\skyboxVertex.glsl" />
+    <None Include="res\Shaders\skyboxFragment.glsl" />
   </ItemGroup>
 </Project>

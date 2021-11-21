@@ -90,6 +90,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Graphics\Skybox.cpp" />
     <ClCompile Include="src\Generators\Grass.cpp" />
     <ClCompile Include="src\Generators\GenerateAlgorithms.cpp" />
     <ClCompile Include="headers\Vendor\stb_image.cpp" />
@@ -118,11 +119,14 @@
     <ClInclude Include="headers\Vendor\stb_image.h" />
     <ClInclude Include="headers\Generators\Terrain.h" />
     <ClInclude Include="headers\Generators\Water.h" />
+    <ClInclude Include="headers\Graphics\Skybox.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\Shaders\grassFragment.glsl" />
     <None Include="res\Shaders\grassGeometry.glsl" />
     <None Include="res\Shaders\grassVertex.glsl" />
+    <None Include="res\Shaders\skyboxFragment.glsl" />
+    <None Include="res\Shaders\skyboxVertex.glsl" />
     <None Include="res\Shaders\TerrainFragment.glsl" />
     <None Include="res\Shaders\vertexShader.glsl" />
     <None Include="res\Shaders\waterFragment.glsl" />

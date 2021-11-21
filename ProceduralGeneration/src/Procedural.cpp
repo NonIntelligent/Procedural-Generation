@@ -88,9 +88,9 @@ void Procedural::setupGlobalUniforms() {
 
 	GLCall(glBufferSubData(GL_UNIFORM_BUFFER, 32, sizeof(vec3), &temp));
 
-	temp.x = 10.f;
-	temp.y = 50.f;
-	temp.z = 50.f;
+	temp.x = 350.f;
+	temp.y = 250.f;
+	temp.z = 900.f;
 
 	GLCall(glBufferSubData(GL_UNIFORM_BUFFER, 48, sizeof(vec3), &temp));
 
@@ -196,6 +196,7 @@ Procedural::~Procedural() {
 	terrain.destroyTerrain();
 	sea.destroyWater();
 	grass.destroyGrass();
+	skybox.destroySkybox();
 
 	glfwTerminate();
 }
@@ -247,6 +248,21 @@ bool Procedural::init() {
 	texture = Texture();
 	texture.loadTexture("res/snow.png", "snow");
 	textures.push_back(texture);
+	
+	std::vector<std::string> texturePaths;
+
+	texturePaths.push_back("res/skyboxNightRIGHT.png");
+	texturePaths.push_back("res/skyboxNightLEFT.png");
+	texturePaths.push_back("res/skyboxNightBOTTOM.png");
+	texturePaths.push_back("res/skyboxNightTOP.png");
+	texturePaths.push_back("res/skyboxNightFRONT.png");
+	texturePaths.push_back("res/skyboxNightBACK.png");
+
+	texture = Texture();
+	if (!texture.loadCubeMap(texturePaths.data(), "skybox")) {
+		std::cout << "Cubemap failed to load entirely." << std::endl;
+	}
+	textures.push_back(texture);
 
 	createObjects();
 
@@ -290,10 +306,17 @@ void Procedural::createShaders() {
 	
 	shader = Shader();
 	shader.parseShader("res/Shaders/grassVertex.glsl", GL_VERTEX_SHADER);
-	shader.parseShader("res/Shaders/grassGeometry.glsl", GL_GEOMETRY_SHADER);
 	shader.parseShader("res/Shaders/grassFragment.glsl", GL_FRAGMENT_SHADER);
+	shader.createShader();
 
 	shaders["grass"] = shader;
+
+	shader = Shader();
+	shader.parseShader("res/Shaders/skyboxVertex.glsl", GL_VERTEX_SHADER);
+	shader.parseShader("res/Shaders/skyboxFragment.glsl", GL_FRAGMENT_SHADER);
+	shader.createShader();
+
+	shaders["skybox"] = shader;
 }
 
 void Procedural::createObjects(){
@@ -319,6 +342,10 @@ void Procedural::createObjects(){
 	std::cout << "Time taken to generate Grass: " << (end - start) << " seconds" << std::endl;
 
 	grass.setShaderName("grass");
+
+	skybox = Skybox();
+	skybox.init();
+	skybox.setShaderName("skybox");
 }
 
 void Procedural::handleInputs() {
@@ -361,6 +388,7 @@ void Procedural::render() {
 
 	renderTerrain();
 	//renderGrass();
+	renderSkybox();
 
 	// Return camera to original position
 	cameraPos.y += distance;
@@ -376,6 +404,7 @@ void Procedural::render() {
 	grass.setClipPlane({0.f, -1.f, 0.f, sea.seaLevel});
 	renderTerrain();
 	//renderGrass();
+	renderSkybox();
 
 	// Render to main frame buffer
 	sea.getReflectionBuffer()->unBind(1280, 720); // unbind to use main buffer
@@ -386,6 +415,7 @@ void Procedural::render() {
 	//renderGrass();
 
 	renderWater();
+	renderSkybox();
 
 	glfwSwapBuffers(window);
 }
@@ -426,7 +456,15 @@ void Procedural::renderGrass() {
 	grass.uniforms.back().dataMatrix[0][0] = glfwGetTime();
 	updateShaderUniform(current, grass.uniforms);
 
-	GLCall(glDrawArrays(GL_POINTS, 0, grass.getVerticesCount()))
+	grass.ib->bind();
+
+	// GLCall(glDrawArrays(GL_POINTS, 0, grass.getVerticesCount()));
+
+
+	// 73845 is the number of grass blades created when using the geometry shader and should be the same here
+	// Change to a calculated number somehow and cluster the blades together increasing density by an expected 10x
+
+	GLCall(glDrawElementsInstanced(GL_TRIANGLE_STRIP, grass.ib->getCount(), GL_UNSIGNED_INT, nullptr, 73845));
 }
 
 void Procedural::renderWater() {
@@ -446,6 +484,23 @@ void Procedural::renderWater() {
 	sea.ib->bind();
 
 	GLCall(glDrawElements(GL_TRIANGLE_STRIP, sea.ib->getCount(), GL_UNSIGNED_INT, nullptr));
+}
+
+void Procedural::renderSkybox() {
+	glDepthFunc(GL_LEQUAL);
+	Shader* current = nullptr;
+
+	auto result = shaders.find("skybox");
+	if (result != shaders.end()) {
+		current = &(result->second);
+	}
+
+	current->bind();
+	skybox.va->bind();
+	updateShaderUniform(current, skybox.uniforms);
+
+	GLCall(glDrawArrays(GL_TRIANGLES, 0, 36));
+	glDepthFunc(GL_LESS);
 }
 
 Texture Procedural::findTexture(const std::string& name) {

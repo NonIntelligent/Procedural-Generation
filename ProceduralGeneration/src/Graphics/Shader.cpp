@@ -65,7 +65,13 @@ GLuint Shader::compileShader(GLuint type, const std::string& sourceCode) {
 	// If compile failed the print out error
 	if(result == GL_FALSE) {
 		std::string shader = type == GL_VERTEX_SHADER ? "vertex" : "fragment";
-		shader = type == GL_GEOMETRY_SHADER ? "geometry" : "compute";
+
+		if (type == GL_GEOMETRY_SHADER) {
+			shader = "geometry";
+		}
+		else if (type == GL_COMPUTE_SHADER){
+			shader = "compute";
+		}
 
 		int length;
 		glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);

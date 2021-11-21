@@ -21,6 +21,8 @@ layout(std140, binding = 1) uniform light
 	vec3 position;
 };
 
+vec3 normal, lightDirection, view;
+
 out vec4 colorsOut;
 
 void main(void)
