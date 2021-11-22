@@ -327,6 +327,10 @@ Vertex* Terrain::getVertices() {
 	return vertices;
 }
 
+unsigned int Terrain::getSeed() {
+	return SEED;
+}
+
 void Terrain::setClipPlane(glm::vec4 plane) {
 	int size = uniforms.size();
 

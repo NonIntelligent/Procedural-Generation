@@ -7,6 +7,8 @@ int main(int argc, char* args[]) {
 
 	if(!procedural->init()) return -1;
 
+	procedural->printMemoryUsage();
+
 	procedural->mainLoop();
 
 	return 0;

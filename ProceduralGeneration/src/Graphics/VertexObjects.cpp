@@ -54,16 +54,22 @@ void VertexArray::addBuffer(const VertexBuffer& vb, const VertexBufferLayout& la
 	bind();
 	vb.bind();
 	const auto& elements = layout.getElements();
+	const auto& isInstanced = layout.getInstances();
 	GLuint offset = 0;
+	int attribute = 0;
 
 	for(GLuint i = 0; i < elements.size(); i++) {
 		const auto& element = elements[i];
-		GLCall(glEnableVertexAttribArray(i));
-		GLCall(glVertexAttribPointer(i, element.count, element.type,
+		attribute = i + numOfElements;
+		GLCall(glEnableVertexAttribArray(attribute));
+		GLCall(glVertexAttribPointer(attribute, element.count, element.type,
 			element.normalised, layout.getStride(), (const void*)offset));
 		offset += element.count * VertexBufferElement::getSizeOfType(element.type);
+
+		glVertexAttribDivisor(attribute, isInstanced[i]);
 	}
 
+	numOfElements += elements.size();
 }
 
 void VertexArray::bind() const {

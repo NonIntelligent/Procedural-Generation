@@ -93,6 +93,8 @@ public:
 
 	Texture findTexture(const std::string& name);
 
+	void printMemoryUsage();
+
 	void updateCamera();
 	void updateShaderUniform(Shader* shader, const std::vector<ShaderUniform>& uniforms);
 

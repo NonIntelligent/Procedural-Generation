@@ -5,6 +5,8 @@
 
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <glm/matrix.hpp>
 #include "Vendor/ErrorLogger.h"
 
 class VertexBuffer {
@@ -54,6 +56,7 @@ struct VertexBufferElement {
 class VertexBufferLayout {
 private:
 	std::vector<VertexBufferElement> m_Elements;
+	std::vector<int> isInstanced;
 	GLuint m_Stride;
 public:
 	VertexBufferLayout()
@@ -61,30 +64,56 @@ public:
 	};
 
 	template<typename T>
-	void push(unsigned int count) {
+	void push(unsigned int count, int instanced = 0) {
 		static_assert(false);
 	}
 
 	template<>
-	void push<float>(unsigned int count) {
+	void push<float>(unsigned int count, int instanced) {
 		m_Elements.push_back({GL_FLOAT, count, GL_FALSE});
 		m_Stride += count * VertexBufferElement::getSizeOfType(GL_FLOAT);
+		isInstanced.push_back(instanced);
 	}
 
 	template<>
-	void push<GLuint>(unsigned int count) {
+	void push<GLuint>(unsigned int count, int instanced) {
 		m_Elements.push_back({GL_UNSIGNED_INT, count, GL_FALSE});
 		m_Stride += count * VertexBufferElement::getSizeOfType(GL_UNSIGNED_INT);
+		isInstanced.push_back(instanced);
 	}
 
 	template<>
-	void push<GLubyte>(unsigned int count) {
+	void push<GLubyte>(unsigned int count, int instanced) {
 		m_Elements.push_back({GL_UNSIGNED_BYTE, count, GL_TRUE});
 		m_Stride += count * VertexBufferElement::getSizeOfType(GL_UNSIGNED_BYTE);
+		isInstanced.push_back(instanced);
+	}
+
+	template<>
+	void push<glm::vec4>(unsigned int count, int instanced) {
+		m_Stride += count * sizeof(glm::vec4);
+
+		for (int i = 0; i < count; i++) {
+			m_Elements.push_back({GL_FLOAT, 4, GL_FALSE});
+			isInstanced.push_back(instanced);
+		}
+	}
+
+	template<>
+	void push<glm::mat4>(unsigned int count, int instanced) {
+		m_Stride += count * sizeof(glm::mat4);
+
+		for (int i = 0; i < 4 * count; i++) {
+			m_Elements.push_back({GL_FLOAT, 4, GL_FALSE});
+			isInstanced.push_back(instanced);
+		}
 	}
 
 	inline const std::vector<VertexBufferElement>& getElements() const {
 		return m_Elements;
+	}
+	inline const std::vector<int>& getInstances() const {
+		return isInstanced;
 	}
 	inline unsigned int getStride() const {
 		return m_Stride;
@@ -95,6 +124,9 @@ public:
 class VertexArray {
 private:
 	GLuint m_RendererID;
+
+	int numOfElements = 0;
+
 public:
 	VertexArray();
 	~VertexArray();
@@ -184,6 +216,11 @@ struct VertexTexture {
 	glm::vec3 position;
 	glm::vec3 normal;
 	glm::vec2 textcoord;
+};
+
+struct VertexNormal {
+	glm::vec3 position;
+	glm::vec3 normal;
 };
 
 struct VertexBasic {

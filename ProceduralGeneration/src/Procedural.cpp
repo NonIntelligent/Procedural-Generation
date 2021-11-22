@@ -3,6 +3,9 @@
 
 #include <iostream>
 
+#define GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX 0x9048
+#define GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX 0x9049
+
 float Procedural::cameraSpeed = 20.f;
 
 // Error callback for GLFW
@@ -291,7 +294,6 @@ bool Procedural::init() {
 void Procedural::createShaders() {
 	Shader shader;
 	shader.parseShader("res/Shaders/vertexShader.glsl", GL_VERTEX_SHADER);
-	shader.parseShader("res/Shaders/grassGeometry.glsl", GL_GEOMETRY_SHADER);
 	shader.parseShader("res/Shaders/TerrainFragment.glsl", GL_FRAGMENT_SHADER);
 	shader.createShader();
 
@@ -337,7 +339,7 @@ void Procedural::createObjects(){
 
 	grass = Grass(terrain.getVertices(), terrain.getMapSize() * terrain.getMapSize(), 4.f, 16.f);
 	start = glfwGetTime();
-	grass.init(terrain.modelView);
+	grass.init(terrain.modelView, terrain.getSeed());
 	end = glfwGetTime();
 	std::cout << "Time taken to generate Grass: " << (end - start) << " seconds" << std::endl;
 
@@ -387,7 +389,7 @@ void Procedural::render() {
 	updateCameraUniform();
 
 	renderTerrain();
-	//renderGrass();
+	renderGrass();
 	renderSkybox();
 
 	// Return camera to original position
@@ -403,7 +405,7 @@ void Procedural::render() {
 	terrain.setClipPlane({0.f, -1.f, 0.f, sea.seaLevel});
 	grass.setClipPlane({0.f, -1.f, 0.f, sea.seaLevel});
 	renderTerrain();
-	//renderGrass();
+	renderGrass();
 	renderSkybox();
 
 	// Render to main frame buffer
@@ -412,7 +414,7 @@ void Procedural::render() {
 	grass.setClipPlane({0.f, 0.f, 0.f, 0.f});
 	renderTerrain();
 	renderTrees();
-	//renderGrass();
+	renderGrass();
 
 	renderWater();
 	renderSkybox();
@@ -445,7 +447,7 @@ void Procedural::renderTrees() {
 void Procedural::renderGrass() {
 	Shader* current = nullptr;
 
-	auto result = shaders.find("terrain");
+	auto result = shaders.find("grass");
 	if (result != shaders.end()) {
 		current = &(result->second);
 	}
@@ -464,7 +466,7 @@ void Procedural::renderGrass() {
 	// 73845 is the number of grass blades created when using the geometry shader and should be the same here
 	// Change to a calculated number somehow and cluster the blades together increasing density by an expected 10x
 
-	GLCall(glDrawElementsInstanced(GL_TRIANGLE_STRIP, grass.ib->getCount(), GL_UNSIGNED_INT, nullptr, 73845));
+	GLCall(glDrawElementsInstanced(GL_TRIANGLE_STRIP, grass.ib->getCount(), GL_UNSIGNED_INT, nullptr, grass.getVerticesCount()));
 }
 
 void Procedural::renderWater() {
@@ -514,6 +516,18 @@ Texture Procedural::findTexture(const std::string& name) {
 	}
 
 	return texture;
+}
+
+void Procedural::printMemoryUsage() {
+	GLint total_mem_kb = 0;
+	GLCall(glGetIntegerv(GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX,
+				  &total_mem_kb));
+
+	GLint cur_avail_mem_kb = 0;
+	GLCall(glGetIntegerv(GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX,
+				  &cur_avail_mem_kb));
+
+	std::cout << "VRAM Usage: " << (total_mem_kb - cur_avail_mem_kb) / 1000 << "MB / " << total_mem_kb / 1000<< "MB" << std::endl;
 }
 
 void Procedural::updateCamera() {
@@ -665,7 +679,7 @@ void Procedural::mainLoop() {
 			render(); // Render in between physics updates
 			double end = glfwGetTime();
 
-			averageTimeToRenderFrame += (end - start) / glfwGetTime();
+			averageTimeToRenderFrame += (end - start);
 
 			frames++;
 			frameTimer += nsPerRenderLimit;

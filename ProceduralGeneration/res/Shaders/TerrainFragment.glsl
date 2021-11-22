@@ -11,8 +11,8 @@ in EXPORT
 	vec3 fragPos;
 } vs_export;
 
-in 	vec2 uv_frag;
-in	float height_frag;
+in 	vec2 uv;
+in	float height;
 
 layout(std140, binding = 1) uniform light 
 {
@@ -56,27 +56,27 @@ void main()
 vec4 mixTextures(float low, float high, float max, float blendFactor, float blendRange){
 	vec4 result;
 
-	vec4 sandColour = texture(u_texture1,	uv_frag);
-	vec4 grassColour = texture(u_texture2,	uv_frag);
-	vec4 rockColour = texture(u_texture3,	uv_frag);
-	vec4 snowColour = texture(u_texture4,	uv_frag);
+	vec4 sandColour = texture(u_texture1,	uv);
+	vec4 grassColour = texture(u_texture2,	uv);
+	vec4 rockColour = texture(u_texture3,	uv);
+	vec4 snowColour = texture(u_texture4,	uv);
 
-	if(height_frag < low){ result = sandColour;}
-	if (height_frag > low - blendRange && height_frag < low + blendRange) {
+	if(height < low){ result = sandColour;}
+	if (height > low - blendRange && height < low + blendRange) {
 		result = mix(sandColour, grassColour, blendFactor);
 	}
 
-	if(height_frag > low && height_frag < high){ result = grassColour;}
-	if (height_frag > high - blendRange && height_frag < high + blendRange) {
+	if(height > low && height < high){ result = grassColour;}
+	if (height > high - blendRange && height < high + blendRange) {
 		result = mix(grassColour, rockColour, blendFactor);
 	}
 
-	if(height_frag > high && height_frag < max){ result = rockColour;}
-	if (height_frag > max - blendRange && height_frag < max + blendRange) {
+	if(height > high && height < max){ result = rockColour;}
+	if (height > max - blendRange && height < max + blendRange) {
 		result = mix(rockColour, snowColour, blendFactor);
 	}
 
-	if(height_frag > max){ result = snowColour;}
+	if(height > max){ result = snowColour;}
 
 	return result;
 }

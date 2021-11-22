@@ -47,6 +47,7 @@ public:
 	int getMapSize();
 	IndexBuffer* getIndexBuffer();
 	Vertex* getVertices();
+	unsigned int getSeed();
 
 	void setClipPlane(glm::vec4 plane);
 };

@@ -5,11 +5,11 @@ vec3 calcLight(vec3 n, vec3 lightDir, vec3 viewDir);
 in EXPORT
 {
 	vec3 norm;
-	vec3 colors;
 	vec3 viewPosition;
 	vec3 fragPos;
-} gs_export;
+} vs_export;
 
+in	vec3 colors;
 in 	vec2 uv_frag;
 in	float height_frag;
 
@@ -25,11 +25,11 @@ vec3 normal, lightDirection, view;
 
 out vec4 colorsOut;
 
-void main(void)
+void main()
 {
-	normal = normalize(gs_export.norm);
+	normal = vec3(0.0, 1.0, 0.0);
 	lightDirection = normalize(position);
-	view = normalize(gs_export.viewPosition - gs_export.fragPos);
+	view = normalize(vs_export.viewPosition - vs_export.fragPos);
 
 	vec3 result;
 
@@ -44,9 +44,9 @@ vec3 calcLight(vec3 n, vec3 lightDir, vec3 viewDir) {
 	vec3 reflectDir = reflect(-lightDir, n);
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 0.0);
 
-	vec3 ambient = ambient * gs_export.colors;
-	vec3 diffuse = diffuse * diff * gs_export.colors * 1.0;
-	vec3 specular = specular * spec * gs_export.colors * 0.3;
+	vec3 ambient = ambient * colors;
+	vec3 diffuse = diffuse * diff * colors * 1.0;
+	vec3 specular = specular * spec * colors * 0.3;
 
 	return ambient + diffuse + specular;
 }

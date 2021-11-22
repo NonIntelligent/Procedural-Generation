@@ -7,9 +7,14 @@
 #include <vector>
 
 class Grass {
-	std::vector<Vertex> vertices;
+	std::vector<Vertex> grassPoints;
+	VertexBasic vertices[7];
+	unsigned int indices[15];
+
+	glm::mat4* instanceMatrices = nullptr;
 
 	int grassCount = 0;
+	unsigned int seed = 0;
 
 	// Opengl stuff needed to render
 	std::string shaderName;
@@ -17,6 +22,7 @@ class Grass {
 public:
 	VertexArray* va = nullptr;
 	VertexBuffer* vb = nullptr;
+	VertexBuffer* vb2 = nullptr;
 	IndexBuffer* ib = nullptr;
 	std::vector<ShaderUniform> uniforms;
 
@@ -26,7 +32,7 @@ public:
 	Grass(Vertex* points, int maxSize, float minHeight, float maxHeight);
 	~Grass() { };
 
-	void init(glm::mat4 terrainModelMatrix);
+	void init(glm::mat4 terrainModelMatrix, unsigned int seed);
 
 	void destroyGrass();
 
