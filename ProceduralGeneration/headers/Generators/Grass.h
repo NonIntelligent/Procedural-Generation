@@ -8,8 +8,8 @@
 
 class Grass {
 	std::vector<Vertex> grassPoints;
-	VertexBasic vertices[7];
-	unsigned int indices[15];
+	VertexUV vertices[8];
+	unsigned int indices[18];
 
 	glm::mat4* instanceMatrices = nullptr;
 
@@ -32,7 +32,7 @@ public:
 	Grass(Vertex* points, int maxSize, float minHeight, float maxHeight);
 	~Grass() { };
 
-	void init(glm::mat4 terrainModelMatrix, unsigned int seed);
+	void init(glm::mat4 terrainModelMatrix, int clusterCount, unsigned int seed);
 
 	void destroyGrass();
 

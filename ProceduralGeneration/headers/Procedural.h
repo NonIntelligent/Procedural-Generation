@@ -97,6 +97,7 @@ public:
 
 	void updateCamera();
 	void updateShaderUniform(Shader* shader, const std::vector<ShaderUniform>& uniforms);
+	void updatePerspective(double fov, double near, double far);
 
 	void mainLoop();
 

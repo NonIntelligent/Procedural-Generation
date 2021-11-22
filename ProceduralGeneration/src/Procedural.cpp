@@ -47,6 +47,7 @@ void Procedural::setupWindowHints() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+	//glfwWindowHint(GLFW_DEPTH_BITS, 32);
 }
 
 void Procedural::setupGlobalUniforms() {
@@ -251,6 +252,14 @@ bool Procedural::init() {
 	texture = Texture();
 	texture.loadTexture("res/snow.png", "snow");
 	textures.push_back(texture);
+
+	texture = Texture();
+	texture.loadTexture("res/grassGreen.jpg", "grassBlade");
+	textures.push_back(texture);
+
+	texture = Texture();
+	texture.loadTexture("res/grassBladeAlpha.jpg", "grassBladeAlpha");
+	textures.push_back(texture);
 	
 	std::vector<std::string> texturePaths;
 
@@ -308,6 +317,7 @@ void Procedural::createShaders() {
 	
 	shader = Shader();
 	shader.parseShader("res/Shaders/grassVertex.glsl", GL_VERTEX_SHADER);
+	shader.parseShader("res/Shaders/grassGeometryCull.glsl", GL_GEOMETRY_SHADER);
 	shader.parseShader("res/Shaders/grassFragment.glsl", GL_FRAGMENT_SHADER);
 	shader.createShader();
 
@@ -339,7 +349,7 @@ void Procedural::createObjects(){
 
 	grass = Grass(terrain.getVertices(), terrain.getMapSize() * terrain.getMapSize(), 4.f, 16.f);
 	start = glfwGetTime();
-	grass.init(terrain.modelView, terrain.getSeed());
+	grass.init(terrain.modelView, 8, terrain.getSeed());
 	end = glfwGetTime();
 	std::cout << "Time taken to generate Grass: " << (end - start) << " seconds" << std::endl;
 
@@ -459,12 +469,6 @@ void Procedural::renderGrass() {
 	updateShaderUniform(current, grass.uniforms);
 
 	grass.ib->bind();
-
-	// GLCall(glDrawArrays(GL_POINTS, 0, grass.getVerticesCount()));
-
-
-	// 73845 is the number of grass blades created when using the geometry shader and should be the same here
-	// Change to a calculated number somehow and cluster the blades together increasing density by an expected 10x
 
 	GLCall(glDrawElementsInstanced(GL_TRIANGLE_STRIP, grass.ib->getCount(), GL_UNSIGNED_INT, nullptr, grass.getVerticesCount()));
 }
@@ -631,6 +635,16 @@ void Procedural::updateShaderUniform(Shader* shader, const std::vector<ShaderUni
 			break;
 		}
 	}
+}
+
+void Procedural::updatePerspective(double fov, double near, double far) {
+	perspectiveMat = perspective(radians(fov), (double)width / height, near, far);
+
+	GLCall(glBindBuffer(GL_UNIFORM_BUFFER, u_cameraID));
+
+	GLCall(glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(mat4), (float*)(&perspectiveMat[0])));
+
+	GLCall(glBindBuffer(GL_UNIFORM_BUFFER, 0));
 }
 
 void Procedural::mainLoop() {

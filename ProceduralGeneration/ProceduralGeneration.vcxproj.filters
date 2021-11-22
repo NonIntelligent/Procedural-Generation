@@ -112,5 +112,6 @@
     <None Include="res\Shaders\grassFragment.glsl" />
     <None Include="res\Shaders\skyboxVertex.glsl" />
     <None Include="res\Shaders\skyboxFragment.glsl" />
+    <None Include="res\Shaders\grassGeometryCull.glsl" />
   </ItemGroup>
 </Project>

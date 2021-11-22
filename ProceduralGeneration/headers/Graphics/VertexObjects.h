@@ -223,6 +223,11 @@ struct VertexNormal {
 	glm::vec3 normal;
 };
 
+struct VertexUV {
+	glm::vec3 position;
+	glm::vec2 textcoord;
+};
+
 struct VertexBasic {
 	glm::vec3 position;
 };

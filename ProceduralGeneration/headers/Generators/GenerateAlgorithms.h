@@ -30,5 +30,7 @@ public:
 	// Generate a random value between (0 -> +range) with accuracy of 3 decimal places
 	static float randomPositive(float range = 1.f);
 
+	static float randomInRange(float low, float high);
+
 	static void setRandomSeed(unsigned int seed);
 };

@@ -23,6 +23,9 @@ layout(std140, binding = 1) uniform light
 
 vec3 normal, lightDirection, view;
 
+uniform sampler2D u_texture;
+uniform sampler2D u_texture_alpha;
+
 out vec4 colorsOut;
 
 void main()
@@ -35,18 +38,21 @@ void main()
 
 	result = calcLight(normal, lightDirection, view);
 
-	colorsOut = vec4(result, 1.0);
+	vec4 textureAlpha = texture(u_texture_alpha, uv_frag);
+
+	colorsOut = vec4(result, textureAlpha.x);
 }
 
 vec3 calcLight(vec3 n, vec3 lightDir, vec3 viewDir) {
+	vec4 textureColour = texture(u_texture, uv_frag);
 	float diff = max(dot(n, lightDir), 0.0);
 
 	vec3 reflectDir = reflect(-lightDir, n);
 	float spec = pow(max(dot(viewDir, reflectDir), 0.0), 0.0);
 
-	vec3 ambient = ambient * colors;
-	vec3 diffuse = diffuse * diff * colors * 1.0;
-	vec3 specular = specular * spec * colors * 0.3;
+	vec3 ambient = ambient * vec3(textureColour);
+	vec3 diffuse = diffuse * diff * vec3(textureColour) * 1.0;
+	vec3 specular = specular * spec * vec3(textureColour) * 0.3;
 
 	return ambient + diffuse + specular;
 }
