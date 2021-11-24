@@ -105,6 +105,8 @@ GLuint Shader::createShader() {
 
 	m_RendererID = program;
 
+	delete[] compiled;
+
 	return program;
 }
 

@@ -10,8 +10,7 @@ in EXPORT
 } vs_export;
 
 in	vec3 colors;
-in 	vec2 uv_frag;
-in	float height_frag;
+in 	vec2 uv;
 
 layout(std140, binding = 1) uniform light 
 {
@@ -24,7 +23,6 @@ layout(std140, binding = 1) uniform light
 vec3 normal, lightDirection, view;
 
 uniform sampler2D u_texture;
-uniform sampler2D u_texture_alpha;
 
 out vec4 colorsOut;
 
@@ -38,13 +36,11 @@ void main()
 
 	result = calcLight(normal, lightDirection, view);
 
-	vec4 textureAlpha = texture(u_texture_alpha, uv_frag);
-
-	colorsOut = vec4(result, textureAlpha.x);
+	colorsOut = vec4(result, 1.0);
 }
 
 vec3 calcLight(vec3 n, vec3 lightDir, vec3 viewDir) {
-	vec4 textureColour = texture(u_texture, uv_frag);
+	vec4 textureColour = texture(u_texture, uv);
 	float diff = max(dot(n, lightDir), 0.0);
 
 	vec3 reflectDir = reflect(-lightDir, n);

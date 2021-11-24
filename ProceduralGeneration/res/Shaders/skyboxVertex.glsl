@@ -22,5 +22,5 @@ void main() {
 
 	vec4 pos = proj * viewStatic * model * vec4(position, 1.0);
 	// Trick to optimise number of pixels drawn but the skybox needs to be rendered last.
-	gl_Position = pos.xyww;
+	gl_Position = pos;
 };

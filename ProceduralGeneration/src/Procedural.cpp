@@ -197,10 +197,20 @@ Procedural::~Procedural() {
 	}
 	shaders.clear();
 
+	for (auto& texture : textures) {
+		texture.deleteTexture();
+	}
+	textures.clear();
+
+	// destory shaders, buffers linked to the generation
 	terrain.destroyTerrain();
 	sea.destroyWater();
 	grass.destroyGrass();
 	skybox.destroySkybox();
+
+	// Delete global uniforms
+	GLCall(glDeleteBuffers(1, &u_cameraID));
+	GLCall(glDeleteBuffers(1, &u_lightID));
 
 	glfwTerminate();
 }
@@ -208,6 +218,9 @@ Procedural::~Procedural() {
 bool Procedural::init() {
 	bool glfw = initGLFW();
 	GLenum error;
+
+	std::cout << "starting memory ";
+	printMemoryUsage();
 
 	if((error = glewInit()) != GLEW_OK) {
 		std::cerr << "Error: " << glewGetErrorString(error) << std::endl;
@@ -228,7 +241,7 @@ bool Procedural::init() {
 	glEnable(GL_PRIMITIVE_RESTART);
 	glPrimitiveRestartIndex(0xffffffff);
 
-	perspectiveMat = perspective(radians(60.0), (double) width / height, 1.0, 1000.0);
+	perspectiveMat = perspective(radians(60.0), (double) width / height, 0.1, 1000.0);
 	lookAtCustom();
 
 	setupGlobalUniforms();
@@ -257,10 +270,6 @@ bool Procedural::init() {
 	texture.loadTexture("res/grassGreen.jpg", "grassBlade");
 	textures.push_back(texture);
 
-	texture = Texture();
-	texture.loadTexture("res/grassBladeAlpha.jpg", "grassBladeAlpha");
-	textures.push_back(texture);
-	
 	std::vector<std::string> texturePaths;
 
 	texturePaths.push_back("res/skyboxNightRIGHT.png");
@@ -296,7 +305,6 @@ bool Procedural::init() {
 	texture.setResourceName("depth_refraction");
 	textures.push_back(texture);
 
-
 	return true;
 }
 
@@ -317,7 +325,6 @@ void Procedural::createShaders() {
 	
 	shader = Shader();
 	shader.parseShader("res/Shaders/grassVertex.glsl", GL_VERTEX_SHADER);
-	shader.parseShader("res/Shaders/grassGeometryCull.glsl", GL_GEOMETRY_SHADER);
 	shader.parseShader("res/Shaders/grassFragment.glsl", GL_FRAGMENT_SHADER);
 	shader.createShader();
 
@@ -347,9 +354,9 @@ void Procedural::createObjects(){
 
 	sea.setShaderName("sea");
 
-	grass = Grass(terrain.getVertices(), terrain.getMapSize() * terrain.getMapSize(), 4.f, 16.f);
+	grass = Grass(terrain.getVertices(), terrain.getMapSize(), 4.f, 16.f);
 	start = glfwGetTime();
-	grass.init(terrain.modelView, 8, terrain.getSeed());
+	grass.init(terrain.modelView, 6, terrain.getSeed());
 	end = glfwGetTime();
 	std::cout << "Time taken to generate Grass: " << (end - start) << " seconds" << std::endl;
 
@@ -358,6 +365,10 @@ void Procedural::createObjects(){
 	skybox = Skybox();
 	skybox.init();
 	skybox.setShaderName("skybox");
+
+	std::cout << "Total number of Terrain vertices generated: " << terrain.getMapSize() * terrain.getMapSize() << std::endl;
+	std::cout << "Total number of Water vertices generated: " << sea.getMapSize() * sea.getMapSize() << std::endl;
+	std::cout << "Total number of Grass vertices generated: " << grass.getVerticesCount() << std::endl;
 }
 
 void Procedural::handleInputs() {
@@ -370,9 +381,9 @@ void Procedural::update() {
 	updateCamera();
 
 	// Lock camera position for benchmarking
-	cameraPos.x = 434.5f;
-	cameraPos.y = 162.0f;
-	cameraPos.z = -3.05f;
+	//cameraPos.x = 434.5f;
+	//cameraPos.y = 162.0f;
+	//cameraPos.z = -3.05f;
 
 	lookAtCustom();
 }
@@ -394,19 +405,19 @@ void Procedural::render() {
 	verticalAngle *= -1.f;
 	calcLookAtDir();
 	// Lock camera direction for more reliable benchmark comparisons
-	lookAtDir = glm::vec3(-0.35f, -0.42f, 0.83f);
+	//lookAtDir = glm::vec3(-0.35f, -0.42f, 0.83f);
 	lookAtCustom();
 	updateCameraUniform();
 
+	renderSkybox();
 	renderTerrain();
 	renderGrass();
-	renderSkybox();
 
 	// Return camera to original position
 	cameraPos.y += distance;
 	verticalAngle *= -1.f;
 	calcLookAtDir();
-	lookAtDir = glm::vec3(-0.35f, -0.42f, 0.83f);
+	//lookAtDir = glm::vec3(-0.35f, -0.42f, 0.83f);
 	lookAtCustom();
 	updateCameraUniform();
 
@@ -414,20 +425,19 @@ void Procedural::render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	terrain.setClipPlane({0.f, -1.f, 0.f, sea.seaLevel});
 	grass.setClipPlane({0.f, -1.f, 0.f, sea.seaLevel});
+	renderSkybox();
 	renderTerrain();
 	renderGrass();
-	renderSkybox();
 
 	// Render to main frame buffer
 	sea.getReflectionBuffer()->unBind(1280, 720); // unbind to use main buffer
 	terrain.setClipPlane({0.f, 0.f, 0.f, 0.f});
 	grass.setClipPlane({0.f, 0.f, 0.f, 0.f});
+	renderSkybox();
 	renderTerrain();
-	renderTrees();
 	renderGrass();
 
 	renderWater();
-	renderSkybox();
 
 	glfwSwapBuffers(window);
 }
@@ -493,7 +503,7 @@ void Procedural::renderWater() {
 }
 
 void Procedural::renderSkybox() {
-	glDepthFunc(GL_LEQUAL);
+	glDepthMask(GL_FALSE);
 	Shader* current = nullptr;
 
 	auto result = shaders.find("skybox");
@@ -506,7 +516,7 @@ void Procedural::renderSkybox() {
 	updateShaderUniform(current, skybox.uniforms);
 
 	GLCall(glDrawArrays(GL_TRIANGLES, 0, 36));
-	glDepthFunc(GL_LESS);
+	glDepthMask(GL_TRUE);
 }
 
 Texture Procedural::findTexture(const std::string& name) {

@@ -305,6 +305,8 @@ void Terrain::destroyTerrain() {
 	delete(ib);
 	va->unBind();
 	delete(va);
+
+	uniforms.clear();
 }
 
 void Terrain::setShaderName(std::string name) {

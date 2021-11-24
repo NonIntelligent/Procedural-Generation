@@ -35,7 +35,7 @@ void main(void)
 	vec2 reflectTexCoords = vec2(ndc.x, -ndc.y);
 	vec2 refractTexCoords = ndc;
 
-	float near = 1.0;
+	float near = 0.1;
 	float far = 1000.0;
 	float depth = texture(u_depth, refractTexCoords).r;
 	float floorDistance = 2.0 * near * far / (far + near - (2.0 * depth - 1.0) * (far - near));

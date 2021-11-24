@@ -209,6 +209,8 @@ void Water::destroyWater() {
 		delete(reflectionB);
 		delete(refractionB);
 	}
+
+	uniforms.clear();
 }
 
 void Water::setShaderName(std::string name) {

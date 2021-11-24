@@ -89,6 +89,8 @@ void Skybox::destroySkybox() {
 	delete(vb);
 	va->unBind();
 	delete(va);
+
+	uniforms.clear();
 }
 
 void Skybox::setShaderName(std::string name) { }

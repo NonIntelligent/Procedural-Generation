@@ -25,8 +25,6 @@ out EXPORT
 
 
 out 	vec2 uv;
-out		float height;
-out int cull;
 
 
 const float windStrength = 2.f;
@@ -38,26 +36,22 @@ void main()
 	gl_ClipDistance[0] = dot(pos, plane);
 
 	vec4 wind = vec4(0.0);
-	wind.x += sin(2 * random * windTime);
+	wind.x += sin(1.5 * random * windTime);
 
 	float grassHeightScalar = grassCoord.y / 5.0;
 
 	if (grassHeightScalar < 0.0) grassHeightScalar = 0.0;
 
+	grassHeightScalar *= grassHeightScalar;
+
 	wind *= windStrength * grassHeightScalar;
 
 	wind *= random;
-
-	vec4 worldPos = model * matrix * (pos + wind);
-
-	if (length(viewPos - vec3(worldPos)) < 200.0) { cull = 1;}
-
-	height = grassCoord.y;
 
 	uv = grassUV;
 
 	export.viewPosition = viewPos;
 	export.fragPos = vec3(model * vec4(grassCoord, 1.f));
 
-	gl_Position = proj * view * worldPos;
+	gl_Position = proj * view * model * matrix * (pos + wind);
 }

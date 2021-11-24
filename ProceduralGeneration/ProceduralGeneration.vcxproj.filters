@@ -108,10 +108,8 @@
     <None Include="res\Shaders\vertexShader.glsl" />
     <None Include="res\Shaders\waterFragment.glsl" />
     <None Include="res\Shaders\waterVertex.glsl" />
-    <None Include="res\Shaders\grassGeometry.glsl" />
     <None Include="res\Shaders\grassFragment.glsl" />
     <None Include="res\Shaders\skyboxVertex.glsl" />
     <None Include="res\Shaders\skyboxFragment.glsl" />
-    <None Include="res\Shaders\grassGeometryCull.glsl" />
   </ItemGroup>
 </Project>

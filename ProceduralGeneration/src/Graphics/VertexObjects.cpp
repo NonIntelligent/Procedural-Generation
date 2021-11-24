@@ -119,6 +119,10 @@ FrameBuffer::~FrameBuffer() {
 	if (m_ColorTextureID != 0) glDeleteTextures(1, &m_ColorTextureID);
 
 	if (m_DepthTextureID != 0) glDeleteTextures(1, &m_DepthTextureID);
+
+	if (m_ColorBuffer != 0) glDeleteRenderbuffers(1, &m_ColorBuffer);
+
+	if (m_DepthBuffer != 0) glDeleteRenderbuffers(1, &m_DepthBuffer);
 }
 
 void FrameBuffer::bind(int width, int height) const {
