@@ -183,9 +183,7 @@ void Grass::init(glm::mat4 terrainModelMatrix, int clusterCount, unsigned int se
 
 void Grass::destroyGrass() { 
 	// Object had used default constructor
-	if (grassPoints.size() > 0) return;
-
-	grassPoints.clear();
+	if (grassPoints.size() <= 0) return;
 
 	// init() was never called
 	if (vb == nullptr) return;

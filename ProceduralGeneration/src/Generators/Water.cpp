@@ -191,9 +191,13 @@ void Water::destroyWater() {
 	// Object had used default constructor
 	if (terrainMap == nullptr) return;
 
-	delete(terrainMap);
-	delete(terrainIndexData);
-	delete(vertices);
+	for (int i = 0; i < map_size; i++) {
+		delete[] terrainMap[i];
+	}
+
+	delete[] terrainMap;
+	delete[] terrainIndexData;
+	delete[] vertices;
 
 	// init() was never called
 	if (vb == nullptr) return;

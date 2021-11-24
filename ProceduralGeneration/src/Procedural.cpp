@@ -220,7 +220,7 @@ bool Procedural::init() {
 	GLenum error;
 
 	std::cout << "starting memory ";
-	printMemoryUsage();
+	int start = printMemoryUsage();
 
 	if((error = glewInit()) != GLEW_OK) {
 		std::cerr << "Error: " << glewGetErrorString(error) << std::endl;
@@ -305,6 +305,11 @@ bool Procedural::init() {
 	texture.setResourceName("depth_refraction");
 	textures.push_back(texture);
 
+	std::cout << "memory after init";
+	int end = printMemoryUsage();
+
+	std::cout << "Memory in use: " << end - start << "MB"<< std::endl;
+
 	return true;
 }
 
@@ -381,9 +386,9 @@ void Procedural::update() {
 	updateCamera();
 
 	// Lock camera position for benchmarking
-	//cameraPos.x = 434.5f;
-	//cameraPos.y = 162.0f;
-	//cameraPos.z = -3.05f;
+	cameraPos.x = 434.5f;
+	cameraPos.y = 162.0f;
+	cameraPos.z = -3.05f;
 
 	lookAtCustom();
 }
@@ -405,7 +410,7 @@ void Procedural::render() {
 	verticalAngle *= -1.f;
 	calcLookAtDir();
 	// Lock camera direction for more reliable benchmark comparisons
-	//lookAtDir = glm::vec3(-0.35f, -0.42f, 0.83f);
+	lookAtDir = glm::vec3(-0.35f, -0.42f, 0.83f);
 	lookAtCustom();
 	updateCameraUniform();
 
@@ -417,7 +422,7 @@ void Procedural::render() {
 	cameraPos.y += distance;
 	verticalAngle *= -1.f;
 	calcLookAtDir();
-	//lookAtDir = glm::vec3(-0.35f, -0.42f, 0.83f);
+	lookAtDir = glm::vec3(-0.35f, -0.42f, 0.83f);
 	lookAtCustom();
 	updateCameraUniform();
 
@@ -532,7 +537,7 @@ Texture Procedural::findTexture(const std::string& name) {
 	return texture;
 }
 
-void Procedural::printMemoryUsage() {
+int Procedural::printMemoryUsage() {
 	GLint total_mem_kb = 0;
 	GLCall(glGetIntegerv(GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX,
 				  &total_mem_kb));
@@ -542,6 +547,8 @@ void Procedural::printMemoryUsage() {
 				  &cur_avail_mem_kb));
 
 	std::cout << "VRAM Usage: " << (total_mem_kb - cur_avail_mem_kb) / 1000 << "MB / " << total_mem_kb / 1000<< "MB" << std::endl;
+
+	return (total_mem_kb - cur_avail_mem_kb) / 1000;
 }
 
 void Procedural::updateCamera() {

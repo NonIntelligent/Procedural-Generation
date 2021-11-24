@@ -292,7 +292,10 @@ void Terrain::destroyTerrain() {
 	// Object had used default constructor
 	if (terrainMap == nullptr) return;
 
-	delete(terrainMap);
+	for (int i = 0; i < MAP_SIZE; i++) {
+		delete[] terrainMap[i];
+	}
+	delete[] terrainMap;
 	delete(terrainIndexData);
 	delete(vertices);
 

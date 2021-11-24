@@ -31,10 +31,13 @@ void main(void)
 {
 	vec4 pos = vec4(terrainCoords, 1.0);
 
-	float waveFunction = waveAmplitude * (sin(compression * (pos.x + waveTime)) + peakAmplitude * cos(4.f * pos.z + waveTime));
+	float firstDerivativeX = waveAmplitude * compression * cos(compression * (pos.x + waveTime)) 
+	- 4.f * peakAmplitude * sin(4.f * pos.x + waveTime);
 
-	float firstDerivative = waveAmplitude * compression * cos(compression * (pos.x + waveTime)) 
+	float firstDerivativeZ = waveAmplitude * compression * cos(compression * (pos.z + waveTime)) 
 	- 4.f * peakAmplitude * sin(4.f * pos.z + waveTime);
+
+	float firstDerivative = firstDerivativeX + firstDerivativeZ;
 
 	vec3 norm = vec3(-firstDerivative, 1.f, 0.f);
 
