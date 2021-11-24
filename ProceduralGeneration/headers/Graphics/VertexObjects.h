@@ -22,7 +22,8 @@ public:
 	VertexBuffer(const void* data, unsigned int size, unsigned int count, unsigned int drawHint);
 	~VertexBuffer();
 
-	void changeBufferData(const void* data, unsigned int size, unsigned int count);
+	void changeBufferData(const void* data, unsigned int size, unsigned int count, unsigned int drawHint);
+	void subBufferData(const void* data, unsigned int size, unsigned int count, int offset);
 
 	void bind() const;
 	void unBind() const;
@@ -132,6 +133,7 @@ public:
 	~VertexArray();
 
 	void addBuffer(const VertexBuffer& vb, const VertexBufferLayout& layout);
+	void updateAttributes(GLuint index, GLint count, GLenum type, GLboolean normalised, GLsizei stride, unsigned int ptr, int divisor);
 
 	void bind() const;
 	void unBind() const;

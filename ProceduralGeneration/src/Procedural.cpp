@@ -46,7 +46,6 @@ void Procedural::setupWindowHints() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	//glfwWindowHint(GLFW_DEPTH_BITS, 32);
 }
 
@@ -241,6 +240,8 @@ bool Procedural::init() {
 	glEnable(GL_PRIMITIVE_RESTART);
 	glPrimitiveRestartIndex(0xffffffff);
 
+	glEnable(GL_DEBUG_OUTPUT);
+
 	perspectiveMat = perspective(radians(60.0), (double) width / height, 0.1, 1000.0);
 	lookAtCustom();
 
@@ -305,7 +306,7 @@ bool Procedural::init() {
 	texture.setResourceName("depth_refraction");
 	textures.push_back(texture);
 
-	std::cout << "memory after init";
+	std::cout << "memory after init ";
 	int end = printMemoryUsage();
 
 	std::cout << "Memory in use: " << end - start << "MB"<< std::endl;
@@ -391,9 +392,12 @@ void Procedural::update() {
 	cameraPos.z = -3.05f;
 
 	lookAtCustom();
+
 }
 
 void Procedural::render() {
+	grass.cullGrass(cameraPos, 300.f, 0);
+
 	glClearColor(1.f, 1.f, 1.f, 0.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -485,7 +489,7 @@ void Procedural::renderGrass() {
 
 	grass.ib->bind();
 
-	GLCall(glDrawElementsInstanced(GL_TRIANGLE_STRIP, grass.ib->getCount(), GL_UNSIGNED_INT, nullptr, grass.getVerticesCount()));
+	GLCall(glDrawElementsInstanced(GL_TRIANGLE_STRIP, grass.ib->getCount(), GL_UNSIGNED_INT, nullptr, grass.getInstanceCount()));
 }
 
 void Procedural::renderWater() {

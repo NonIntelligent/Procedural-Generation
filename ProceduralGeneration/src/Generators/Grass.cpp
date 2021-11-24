@@ -77,7 +77,10 @@ void Grass::init(glm::mat4 terrainModelMatrix, int clusterCount, unsigned int se
 
 	if (clusterCount <= 0) clusterCount = 1;
 
-	grassCount = grassPoints.size() * clusterCount;
+	this->clusterCount = clusterCount;
+
+	maxInstanceCount = grassPoints.size() * clusterCount;
+	instanceCount = maxInstanceCount;
 
 	// Generate vertex arrays and buffers
 	va = new VertexArray();
@@ -91,8 +94,8 @@ void Grass::init(glm::mat4 terrainModelMatrix, int clusterCount, unsigned int se
 
 	// Prepare instance data
 	Generate::setRandomSeed(seed);
-	glm::mat4* instanceMatrices = new glm::mat4[grassPoints.size() * clusterCount]; // 1 instance per vertex provided by terrain.
-	float* rands = new float[grassPoints.size() * clusterCount];
+	instanceMatrices = new glm::mat4[maxInstanceCount]; // 1 instance per vertex provided by terrain.
+	rands = new float[maxInstanceCount];
 
 	float offset = 0.5f;
 
@@ -130,20 +133,16 @@ void Grass::init(glm::mat4 terrainModelMatrix, int clusterCount, unsigned int se
 	}
 
 	// Add another vertex buffer to array for instancing
-	vb2 = new VertexBuffer(instanceMatrices, grassCount * sizeof(glm::mat4), grassCount, GL_STATIC_DRAW);
+	vb2 = new VertexBuffer(instanceMatrices, instanceCount * sizeof(glm::mat4), instanceCount, GL_STATIC_DRAW);
 
 	layout = VertexBufferLayout();
 	layout.push<glm::mat4>(1, 1);
 	va->addBuffer(*vb2, layout);
 
-	delete[] instanceMatrices;
-
-	vb3 = new VertexBuffer(rands, grassCount * sizeof(float), grassCount, GL_STATIC_DRAW);
+	vb3 = new VertexBuffer(rands, instanceCount * sizeof(float), instanceCount, GL_STATIC_DRAW);
 	layout = VertexBufferLayout();
 	layout.push<float>(1, 1);
 	va->addBuffer(*vb3, layout);
-
-	delete[] rands;
 
 	ib = new IndexBuffer(indices, 15, GL_STATIC_DRAW);
 
@@ -181,12 +180,65 @@ void Grass::init(glm::mat4 terrainModelMatrix, int clusterCount, unsigned int se
 	ib->unBind();
 }
 
+void Grass::cullGrass(glm::vec3 currentPosition, float distanceLimit, int instanceLimit) {
+	if (vb == nullptr) return;
+
+	// Copy-implementation 
+	int counter = 0;
+	float distance = 0.f;
+	glm::vec4 grassPosition = vec4(vertices[0].position, 1.0);
+	glm::vec4 camPos = vec4(currentPosition, 1.0);
+
+	glm::mat4 tempMat;
+	float tempRand;
+
+	for (int i = 0; i < maxInstanceCount; i++) {
+		float length = glm::length(instanceMatrices[i] * grassPosition - camPos);
+
+		// not valid
+		if (length > distanceLimit) continue;
+
+		// swap values in arrays as it's within limits
+		tempMat = instanceMatrices[counter];
+		tempRand = rands[counter];
+
+		instanceMatrices[counter] = instanceMatrices[i];
+		rands[counter] = rands[i];
+
+		instanceMatrices[i] = tempMat;
+		rands[i] = tempRand;
+
+		counter++;
+	}
+
+
+	instanceCount = counter < instanceLimit ? counter : instanceLimit;
+
+	if (instanceLimit <= 0) instanceCount = counter;
+
+	va->bind();
+	// Substitute vertex buffer data
+	
+	vb2->bind();
+	GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, instanceCount * sizeof(glm::mat4), instanceMatrices));
+
+	vb3->bind();
+	GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, instanceCount * sizeof(float), rands));
+
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+	va->unBind();
+
+}
+
 void Grass::destroyGrass() { 
 	// Object had used default constructor
 	if (grassPoints.size() <= 0) return;
 
 	// init() was never called
 	if (vb == nullptr) return;
+
+	delete[] instanceMatrices;
+	delete[] rands;
 
 	vb->unBind();
 	delete(vb);
@@ -213,7 +265,11 @@ void Grass::setClipPlane(glm::vec4 plane) {
 }
 
 int Grass::getVerticesCount() {
-	return grassCount;
+	return grassPoints.size() * 7;
+}
+
+int Grass::getInstanceCount() {
+	return instanceCount;
 }
 
 void Grass::setShaderName(std::string name) {

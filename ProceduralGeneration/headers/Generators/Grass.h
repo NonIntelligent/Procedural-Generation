@@ -11,11 +11,15 @@ class Grass {
 	VertexUV vertices[7];
 	unsigned int indices[15];
 
-	int grassCount = 0;
+	int instanceCount = 0;
+	int maxInstanceCount = 0;
+	int clusterCount = 0;
 	unsigned int seed = 0;
 
 	// Opengl stuff needed to render
 	std::string shaderName;
+	glm::mat4* instanceMatrices;
+	float* rands;
 
 public:
 	VertexArray* va = nullptr;
@@ -33,10 +37,13 @@ public:
 
 	void init(glm::mat4 terrainModelMatrix, int clusterCount, unsigned int seed);
 
+	void cullGrass(glm::vec3 currentPosition, float distanceLimit, int instanceLimit);
+
 	void destroyGrass();
 
 	std::string getShaderName();
 	int getVerticesCount();
+	int getInstanceCount();
 
 	void setShaderName(std::string name);
 	void setClipPlane(glm::vec4 clipPlane);

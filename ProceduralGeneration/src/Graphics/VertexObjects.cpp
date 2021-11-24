@@ -21,9 +21,16 @@ VertexBuffer::~VertexBuffer() {
 	GLCall(glDeleteBuffers(1, &m_RendererID));
 }
 
-void VertexBuffer::changeBufferData(const void* data, unsigned int size, unsigned int count) {
+void VertexBuffer::changeBufferData(const void* data, unsigned int size, unsigned int count, unsigned int drawHint) {
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_RendererID));
 	GLCall(glBufferData(GL_ARRAY_BUFFER, size, data, drawHint));
+	m_Count = count;
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
+}
+
+void VertexBuffer::subBufferData(const void* data, unsigned int size, unsigned int count, int offset) {
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_RendererID));
+	GLCall(glBufferSubData(GL_ARRAY_BUFFER, offset, size, data));
 	m_Count = count;
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
@@ -70,6 +77,13 @@ void VertexArray::addBuffer(const VertexBuffer& vb, const VertexBufferLayout& la
 	}
 
 	numOfElements += elements.size();
+}
+
+void VertexArray::updateAttributes(GLuint index, GLint count, GLenum type, GLboolean normalised, GLsizei stride, unsigned int offset, int divisor) {
+	//GLCall(glEnableVertexAttribArray(index));
+	GLCall(glVertexAttribPointer(index, count, type, normalised, stride, (const void*) offset));
+
+	glVertexAttribDivisor(index, divisor);
 }
 
 void VertexArray::bind() const {
