@@ -1,9 +1,10 @@
 #include "Generators/Grass.h"
 
 #include "Generators/GenerateAlgorithms.h"
+#include "Vendor/Algorithms.h"
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/matrix.hpp>
-#include <glm/gtx/norm.hpp>
 #include <vector>
 
 Grass::Grass(VertexTexture* points, int width, float minHeight, float maxHeight) { 
@@ -70,7 +71,6 @@ Grass::Grass(VertexTexture* points, int width, float minHeight, float maxHeight)
 	indices[6] = 2; indices[7] = 3; indices[8] = 4;
 	indices[9] = 3; indices[10] = 4; indices[11] = 5;
 	indices[12] = 4; indices[13] = 5; indices[14] = 6;
-
 }
 
 void Grass::init(glm::mat4 terrainModelMatrix, int clusterCount, unsigned int seed) {
@@ -134,13 +134,13 @@ void Grass::init(glm::mat4 terrainModelMatrix, int clusterCount, unsigned int se
 	}
 
 	// Add another vertex buffer to array for instancing
-	vb2 = new VertexBuffer(instanceMatrices, instanceCount * sizeof(glm::mat4), instanceCount, GL_STATIC_DRAW);
+	vb2 = new VertexBuffer(instanceMatrices, instanceCount * sizeof(glm::mat4), instanceCount, GL_DYNAMIC_DRAW);
 
 	layout = VertexBufferLayout();
 	layout.push<glm::mat4>(1, 1);
 	va->addBuffer(*vb2, layout);
 
-	vb3 = new VertexBuffer(rands, instanceCount * sizeof(float), instanceCount, GL_STATIC_DRAW);
+	vb3 = new VertexBuffer(rands, instanceCount * sizeof(float), instanceCount, GL_DYNAMIC_DRAW);
 	layout = VertexBufferLayout();
 	layout.push<float>(1, 1);
 	va->addBuffer(*vb3, layout);
@@ -190,7 +190,6 @@ void Grass::cullGrass(glm::vec3 currentPosition, float distanceLimit, int instan
 	glm::vec4 camPos = vec4(currentPosition, 1.0);
 	glm::mat4 tempMat;
 	float tempRand;
-
 
 	for (int i = 0; i < maxInstanceCount; i++) {
 		length = glm::length(instanceMatrices[i] * grassPosition - camPos);

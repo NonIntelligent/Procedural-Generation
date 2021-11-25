@@ -345,7 +345,16 @@ void Procedural::createShaders() {
 }
 
 void Procedural::createObjects(){
-	terrain = Terrain(513, 847866344);
+
+	unsigned int seed;
+
+	#ifdef BENCHMARK
+	seed = 847866344u;
+	#else
+	seed = high_res_clock::now().time_since_epoch().count();
+	#endif // BENCHMARK
+
+	terrain = Terrain(513, seed);
 	double start = glfwGetTime();
 	terrain.init(vec4(25.f), vec3(4.f, 16.f, 32.f), 45.f, 1.1f);
 	double end = glfwGetTime();
@@ -387,9 +396,11 @@ void Procedural::update() {
 	updateCamera();
 
 	// Lock camera position for benchmarking
+	#ifdef BENCHMARK
 	cameraPos.x = 434.5f;
 	cameraPos.y = 162.0f;
 	cameraPos.z = -3.05f;
+	#endif
 
 	lookAtCustom();
 
@@ -414,7 +425,9 @@ void Procedural::render() {
 	verticalAngle *= -1.f;
 	calcLookAtDir();
 	// Lock camera direction for more reliable benchmark comparisons
+	#ifdef BENCHMARK
 	lookAtDir = glm::vec3(-0.35f, -0.42f, 0.83f);
+	#endif
 	lookAtCustom();
 	updateCameraUniform();
 
@@ -426,7 +439,9 @@ void Procedural::render() {
 	cameraPos.y += distance;
 	verticalAngle *= -1.f;
 	calcLookAtDir();
+	#ifdef BENCHMARK
 	lookAtDir = glm::vec3(-0.35f, -0.42f, 0.83f);
+	#endif
 	lookAtCustom();
 	updateCameraUniform();
 
@@ -477,9 +492,11 @@ void Procedural::renderGrass() {
 	Shader* current = nullptr;
 
 	auto result = shaders.find("grass");
-	if (result != shaders.end()) {
-		current = &(result->second);
+	if (result == shaders.end()) {
+		return;
 	}
+
+	current = &(result->second);
 
 	current->bind();
 	grass.va->bind();

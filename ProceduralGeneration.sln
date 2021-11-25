@@ -8,11 +8,14 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
+		Release Benchmark|x64 = Release Benchmark|x64
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{0CC3C2E2-0C42-443C-B2A3-5A20D4014C45}.Debug|x64.ActiveCfg = Debug|x64
 		{0CC3C2E2-0C42-443C-B2A3-5A20D4014C45}.Debug|x64.Build.0 = Debug|x64
+		{0CC3C2E2-0C42-443C-B2A3-5A20D4014C45}.Release Benchmark|x64.ActiveCfg = Release Benchmark|x64
+		{0CC3C2E2-0C42-443C-B2A3-5A20D4014C45}.Release Benchmark|x64.Build.0 = Release Benchmark|x64
 		{0CC3C2E2-0C42-443C-B2A3-5A20D4014C45}.Release|x64.ActiveCfg = Release|x64
 		{0CC3C2E2-0C42-443C-B2A3-5A20D4014C45}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
