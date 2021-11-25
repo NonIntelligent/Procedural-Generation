@@ -10,7 +10,7 @@ class Terrain {
 	const int MAP_SIZE;
 	const unsigned int SEED;
 
-	Vertex* vertices = nullptr;
+	VertexTexture* vertices = nullptr;
 	float** terrainMap = nullptr;
 	unsigned int* terrainIndexData = nullptr;
 
@@ -46,7 +46,7 @@ public:
 	std::string getShaderName();
 	int getMapSize();
 	IndexBuffer* getIndexBuffer();
-	Vertex* getVertices();
+	VertexTexture* getVertices();
 	unsigned int getSeed();
 
 	void setClipPlane(glm::vec4 plane);

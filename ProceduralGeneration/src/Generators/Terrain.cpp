@@ -100,7 +100,7 @@ void Terrain::buildTextureData() {
 }
 
 Terrain::Terrain(int mapSize, unsigned int seed) : MAP_SIZE(mapSize), SEED(seed) {
-	vertices = new Vertex[mapSize * mapSize];
+	vertices = new VertexTexture[mapSize * mapSize];
 
 	int numStripsRequired = mapSize - 1;
 	int verticesPerStrip = mapSize * 2;
@@ -183,7 +183,6 @@ void Terrain::init(glm::vec4 initialHeight, glm::vec3 heightBounds, float random
 	for(int z = 0; z < MAP_SIZE; z++) {
 		for(int x = 0; x < MAP_SIZE; x++) {
 			vertices[i].position = glm::vec3(x, terrainMap[x][z], z);
-			vertices[i].color = glm::vec3(0.f);
 			vertices[i].normal = glm::vec3(0.f);
 			vertices[i].textcoord = glm::vec2(0.f);
 			i++;
@@ -202,12 +201,11 @@ void Terrain::init(glm::vec4 initialHeight, glm::vec3 heightBounds, float random
 	// Generate vertex arrays and buffers
 	va = new VertexArray();
 
-	vb = new VertexBuffer(&vertices[0], MAP_SIZE * MAP_SIZE * sizeof(Vertex), MAP_SIZE * MAP_SIZE, GL_STATIC_DRAW);
+	vb = new VertexBuffer(&vertices[0], MAP_SIZE * MAP_SIZE * sizeof(VertexTexture), MAP_SIZE * MAP_SIZE, GL_STATIC_DRAW);
 
 	VertexBufferLayout layout;
 	// Vertex data has 11 components
 	layout.push<float>(3); // position
-	layout.push<float>(3); // colour
 	layout.push<float>(3); // normal
 	layout.push<float>(2); // texture coords
 	va->addBuffer(*vb, layout);
@@ -296,8 +294,8 @@ void Terrain::destroyTerrain() {
 		delete[] terrainMap[i];
 	}
 	delete[] terrainMap;
-	delete(terrainIndexData);
-	delete(vertices);
+	delete[] terrainIndexData;
+	delete[] vertices;
 
 	// init was never called for terrain
 	if (vb == nullptr) return;
@@ -328,7 +326,7 @@ IndexBuffer* Terrain::getIndexBuffer() {
 	return ib;
 }
 
-Vertex* Terrain::getVertices() {
+VertexTexture* Terrain::getVertices() {
 	return vertices;
 }
 

@@ -167,19 +167,19 @@ void Generate::PerlinNoise(float** arr, int maxSize, int octaves, float h, float
 float Generate::random(float range) {
 	int wholeNumberRange = range * 1000 + 1; // Scale range by the thousands for higher precision
 
-	return (rand() % wholeNumberRange) / 500.f - range;
+	return (rand() % wholeNumberRange) * 0.002f - range;
 }
 
-float Generate::randomPositive(float range /*= 1.f*/) {
+float Generate::randomPositive(float range) {
 	int wholeNumberRange = range * 1000 + 1; // Scale range by the thousands for higher precision
 
-	return (rand() % wholeNumberRange) / 1000.f;
+	return (rand() % wholeNumberRange) * 0.001;
 }
 
 float Generate::randomInRange(float low, float high) {
 	int wholeNumberRange = (high - low) * 1000 + 1; // Scale range by the thousands for higher precision
 
-	return (rand() % wholeNumberRange) / 1000.f + low;
+	return (rand() % wholeNumberRange) * 0.001f + low;
 }
 
 void Generate::setRandomSeed(unsigned int seed) {

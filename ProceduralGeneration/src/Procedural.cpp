@@ -27,7 +27,7 @@ bool Procedural::initGLFW() {
 	setupWindowHints();
 
 	//create the window
-	window = glfwCreateWindow(1280, 720, "Procedural-Generation", NULL, NULL);
+	window = glfwCreateWindow(width, height, "Procedural-Generation", NULL, NULL);
 	if(!window) {
 		std::cout << "GLFW Window could not be created!" << std::endl;
 		return false;
@@ -242,7 +242,7 @@ bool Procedural::init() {
 
 	glEnable(GL_DEBUG_OUTPUT);
 
-	perspectiveMat = perspective(radians(60.0), (double) width / height, 0.1, 1000.0);
+	perspectiveMat = perspective(radians(60.0), width / height, 0.1, 1000.0);
 	lookAtCustom();
 
 	setupGlobalUniforms();
@@ -402,7 +402,7 @@ void Procedural::render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// render to other frame buffers i.e. water reflection
-	sea.getReflectionBuffer()->bind(1280, 720);
+	sea.getReflectionBuffer()->bind(width, height);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// Set clipping planes to render everything above sea level
 	terrain.setClipPlane({0.f, 1.f, 0.f, -sea.seaLevel});
@@ -430,7 +430,7 @@ void Procedural::render() {
 	lookAtCustom();
 	updateCameraUniform();
 
-	sea.getRefractionBuffer()->bind(1280, 720);
+	sea.getRefractionBuffer()->bind(width, height);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	terrain.setClipPlane({0.f, -1.f, 0.f, sea.seaLevel});
 	grass.setClipPlane({0.f, -1.f, 0.f, sea.seaLevel});
@@ -439,7 +439,7 @@ void Procedural::render() {
 	renderGrass();
 
 	// Render to main frame buffer
-	sea.getReflectionBuffer()->unBind(1280, 720); // unbind to use main buffer
+	sea.getReflectionBuffer()->unBind(width, height); // unbind to use main buffer
 	terrain.setClipPlane({0.f, 0.f, 0.f, 0.f});
 	grass.setClipPlane({0.f, 0.f, 0.f, 0.f});
 	renderSkybox();

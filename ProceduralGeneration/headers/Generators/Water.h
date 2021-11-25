@@ -6,9 +6,9 @@
 #include <glm/vec4.hpp>
 
 class Water { 
-	int map_size = 5;
+	int map_size = 0;
 
-	Vertex* vertices = nullptr;
+	VertexBasic* vertices = nullptr;
 	float** terrainMap = nullptr;
 	unsigned int* terrainIndexData = nullptr;
 
@@ -16,8 +16,6 @@ class Water {
 	std::string shaderName;
 
 	void buildIndexData();
-	void buildNormalData();
-	void buildTextureData();
 
 public:
 	VertexArray* va = nullptr;

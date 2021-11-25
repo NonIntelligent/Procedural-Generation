@@ -7,7 +7,7 @@
 #include <vector>
 
 class Grass {
-	std::vector<Vertex> grassPoints;
+	std::vector<VertexBasic> grassPoints;
 	VertexUV vertices[7];
 	unsigned int indices[15];
 
@@ -18,8 +18,8 @@ class Grass {
 
 	// Opengl stuff needed to render
 	std::string shaderName;
-	glm::mat4* instanceMatrices;
-	float* rands;
+	glm::mat4* instanceMatrices = nullptr;
+	float* rands = nullptr;
 
 public:
 	VertexArray* va = nullptr;
@@ -32,12 +32,18 @@ public:
 	float windTime = 0.f;
 
 	Grass() { };
-	Grass(Vertex* points, int width, float minHeight, float maxHeight);
+	Grass(VertexTexture* points, int width, float minHeight, float maxHeight);
 	~Grass() { };
 
 	void init(glm::mat4 terrainModelMatrix, int clusterCount, unsigned int seed);
 
-	void cullGrass(glm::vec3 currentPosition, float distanceLimit, int instanceLimit);
+	/* Culls grass to a circular radius around the current position.
+	* 
+	*	Loops through all possible grass pointsand changes data in vertex buffer to only
+	*	render the ones within the distanceLimit.
+	*	@param instanceLimit Optionally limit the total number of instances to render (leave at 0 for no limit)
+	*/
+	void cullGrass(glm::vec3 currentPosition, float distanceLimit, int instanceLimit = 0);
 
 	void destroyGrass();
 

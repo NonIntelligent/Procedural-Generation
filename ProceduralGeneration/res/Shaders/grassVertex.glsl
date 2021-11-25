@@ -38,15 +38,13 @@ void main()
 	vec4 wind = vec4(0.0);
 	wind.x += sin(1.5 * random * windTime);
 
-	float grassHeightScalar = grassCoord.y / 5.0;
+	float grassHeightScalar = grassCoord.y * 0.2;
 
 	if (grassHeightScalar < 0.0) grassHeightScalar = 0.0;
 
-	grassHeightScalar *= grassHeightScalar;
+	wind.x *= windStrength * grassHeightScalar * grassHeightScalar;
 
-	wind *= windStrength * grassHeightScalar;
-
-	wind *= random;
+	wind.x *= random;
 
 	uv = grassUV;
 

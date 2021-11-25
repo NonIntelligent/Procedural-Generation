@@ -3,16 +3,19 @@
 #include "Generators/GenerateAlgorithms.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/matrix.hpp>
+#include <glm/gtx/norm.hpp>
 #include <vector>
 
-Grass::Grass(Vertex* points, int width, float minHeight, float maxHeight) { 
-	Vertex samplePoints[4];
+Grass::Grass(VertexTexture* points, int width, float minHeight, float maxHeight) { 
+	VertexTexture samplePoints[4];
 	int numOfSamples = 0;
 	int otherGrassCount = 0;
 	int maxSize = width * width;
 
 	for (int i = 0; i < maxSize; i++) {
 		bool acceptableHeight = points[i].position.y > minHeight && points[i].position.y < maxHeight;
+
+		if (!acceptableHeight) continue;
 
 		// There's a sample above or to the left current point
 		if (i - width >= 0) {
@@ -42,8 +45,8 @@ Grass::Grass(Vertex* points, int width, float minHeight, float maxHeight) {
 			if (samplePoints[s].position.y > minHeight && samplePoints[s].position.y < maxHeight) otherGrassCount++;
 		}
 
-		if (acceptableHeight && otherGrassCount > 3) {
-			grassPoints.push_back(points[i]);
+		if (otherGrassCount > 3) {
+			grassPoints.push_back({points[i].position});
 		}
 
 		numOfSamples = 0;
@@ -98,34 +101,32 @@ void Grass::init(glm::mat4 terrainModelMatrix, int clusterCount, unsigned int se
 	rands = new float[maxInstanceCount];
 
 	float offset = 0.5f;
-
 	int jump = 0;
+	glm::mat4 tempModel;
+	glm::vec3 tempClusterOffset(0.0);
+	float tempRotation;
 
 	for (int i = 0; i < grassPoints.size(); i++) {
 		jump = clusterCount * i;
 
 		for (int c = 0; c < clusterCount; c++) {
 
-			glm::mat4 model = glm::mat4(1.f);
-		
-			//glm::vec4 newPosition = glm::vec4(grassPoints[i].position, 1.0) * terrainModelMatrix;
 
 			// create a grass at a given terrain vertex
-			model = terrainModelMatrix;
-			model = glm::translate(model, grassPoints[i].position);
-			model = glm::scale(model, glm::vec3(1.f, 0.25f, 1.f));
+			tempModel = terrainModelMatrix;
+			tempModel = glm::translate(tempModel, grassPoints[i].position);
+			tempModel = glm::scale(tempModel, glm::vec3(1.f, 0.25f, 1.f)); // remove height scale from terrain
 
-			glm::vec3 clusterOffset(Generate::random(offset), 0.f, Generate::random(offset));
+			tempClusterOffset.x = Generate::random(offset);
+			tempClusterOffset.z = Generate::random(offset);
 
-			model = glm::translate(model, clusterOffset);
-
-			//model = glm::translate(model, glm::vec3(10.f, 10.f, Generate::random(50.f)));
+			tempModel = glm::translate(tempModel, tempClusterOffset);
 
 			// Rotates a random amount around the unit-up axis
-			float rotAngle = Generate::random(2 * 3.1415927f);
-			model = glm::rotate(model, rotAngle, glm::vec3(0.f, 1.f, 0.f));
+			tempRotation = Generate::random(2 * 3.1415927f);
+			tempModel = glm::rotate(tempModel, tempRotation, glm::vec3(0.f, 1.f, 0.f));
 
-			instanceMatrices[jump + c] = model;
+			instanceMatrices[jump + c] = tempModel;
 
 			rands[jump + c] = Generate::randomInRange(0.4f, 1.6f);
 		}
@@ -183,17 +184,16 @@ void Grass::init(glm::mat4 terrainModelMatrix, int clusterCount, unsigned int se
 void Grass::cullGrass(glm::vec3 currentPosition, float distanceLimit, int instanceLimit) {
 	if (vb == nullptr) return;
 
-	// Copy-implementation 
 	int counter = 0;
-	float distance = 0.f;
+	float length = 0;
 	glm::vec4 grassPosition = vec4(vertices[0].position, 1.0);
 	glm::vec4 camPos = vec4(currentPosition, 1.0);
-
 	glm::mat4 tempMat;
 	float tempRand;
 
+
 	for (int i = 0; i < maxInstanceCount; i++) {
-		float length = glm::length(instanceMatrices[i] * grassPosition - camPos);
+		length = glm::length(instanceMatrices[i] * grassPosition - camPos);
 
 		// not valid
 		if (length > distanceLimit) continue;

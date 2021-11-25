@@ -1,9 +1,8 @@
 #version 420 core
 
 layout(location=0) in vec3 terrainCoords;
-layout(location=1) in vec3 terrainColors;
-layout(location=2) in vec3 terrainNormal;
-layout(location=3) in vec2 terrainUV;
+layout(location=1) in vec3 terrainNormal;
+layout(location=2) in vec2 terrainUV;
 
 layout(std140, binding = 0) uniform camera
 {
@@ -19,14 +18,12 @@ uniform vec4 plane;
 out EXPORT
 {
 	vec3 norm;
-	vec3 colors;
 	vec3 viewPosition;
 	vec3 fragPos;
 } export;
 
 out 	vec2 uv;
 out		float height;
-out		int type;
 
 void main()
 {
@@ -34,15 +31,12 @@ void main()
 
 	gl_ClipDistance[0] = dot(pos, plane);
 
-	export.colors = terrainColors;
 	export.norm = normalize(normalMat * terrainNormal);
 	uv = terrainUV;
 	height = terrainCoords.y;
 
 	export.viewPosition = viewPos;
 	export.fragPos = vec3(model * vec4(terrainCoords, 1.f));
-
-	type = 1;
 
 	gl_Position = proj * view * model * pos;
 }

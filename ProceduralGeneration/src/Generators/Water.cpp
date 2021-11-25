@@ -30,33 +30,12 @@ void Water::buildIndexData() {
 	}
 }
 
-void Water::buildNormalData() {
-
-}
-
-void Water::buildTextureData() {
-	float textureS = 1.f;
-	float textureT = 1.f;
-	int i = 0;
-	float scaleC, scaleR;
-
-	const float divisor = map_size - 1.f;
-
-	for (int x = 0; x < map_size; x++) {
-		for (int z = 0; z < map_size; z++) {
-			scaleC = x / divisor;
-			scaleR = z / divisor;
-			vertices[i].textcoord = {textureS * scaleC, textureT * scaleR};
-			i++;
-		}
-	}
-}
-
 Water::Water(int mapSize, float seaLevel) {
+	if (mapSize <= 3) mapSize = 5;
 	this->map_size = mapSize;
 	this->seaLevel = seaLevel;
 
-	vertices = new Vertex[mapSize * mapSize];
+	vertices = new VertexBasic[mapSize * mapSize];
 
 	int numStripsRequired = mapSize - 1;
 	int verticesPerStrip = mapSize * 2;
@@ -77,6 +56,8 @@ Water::Water(int mapSize, float seaLevel) {
 }
 
 void Water::init() {
+	if (map_size <= 0) return;
+
 	int numStrips = map_size - 1;
 	int verticesPerStrip = map_size * 2;
 
@@ -86,30 +67,20 @@ void Water::init() {
 	for (int z = 0; z < map_size; z++) {
 		for (int x = 0; x < map_size; x++) {
 			vertices[i].position = glm::vec3(x, terrainMap[x][z], z);
-			vertices[i].color = glm::vec3(0.83f, 0.945f, 0.977f);
-			vertices[i].normal = glm::vec3(0.f);
-			vertices[i].textcoord = glm::vec2(0.f);
 			i++;
 		}
 	}
 
 	buildIndexData();
 
-	buildNormalData();
-
-	buildTextureData();
-
 	// Generate vertex arrays and buffers
 	va = new VertexArray();
 
-	vb = new VertexBuffer(&vertices[0], map_size * map_size * sizeof(Vertex), map_size * map_size, GL_STATIC_DRAW);
+	vb = new VertexBuffer(&vertices[0], map_size * map_size * sizeof(VertexBasic), map_size * map_size, GL_STATIC_DRAW);
 
 	VertexBufferLayout layout;
 	// Vertex data has 11 components
 	layout.push<float>(3); // position
-	layout.push<float>(3); // colour
-	layout.push<float>(3); // normal
-	layout.push<float>(2); // texture coords
 	va->addBuffer(*vb, layout);
 
 	ib = new IndexBuffer(&terrainIndexData[0], (map_size - 1) * (map_size * 2) + numStrips, GL_STATIC_DRAW);

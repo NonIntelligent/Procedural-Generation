@@ -58,7 +58,7 @@ class Procedural {
 	// Lighting
 	GLuint u_lightID;
 
-	float width = 1280, height = 720;
+	double width = 1280, height = 720;
 
 	bool initGLFW();
 	void setupWindowHints();

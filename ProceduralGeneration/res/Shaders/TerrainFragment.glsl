@@ -6,7 +6,6 @@ vec3 calcLight(vec3 n, vec3 lightDir, vec3 viewDir);
 in EXPORT
 {
 	vec3 norm;
-	vec3 colors;
 	vec3 viewPosition;
 	vec3 fragPos;
 } vs_export;
@@ -37,20 +36,15 @@ out vec4 colorsOut;
 
 void main()
 {
-	if (length(vs_export.colors) > 0.0){
-		colorsOut = vec4(vs_export.colors, 1.0);
-	}
-	else {
-		textureColour = mixTextures(lower, higher, maximum, 0.6f, 1.2f);
+	textureColour = mixTextures(lower, higher, maximum, 0.6f, 1.2f);
 
-		normal = normalize(vs_export.norm);
-		lightDirection = normalize(position);
-		view = normalize(vs_export.viewPosition - vs_export.fragPos);
+	normal = normalize(vs_export.norm);
+	lightDirection = normalize(position);
+	view = normalize(vs_export.viewPosition - vs_export.fragPos);
 
-		vec3 result = calcLight(normal, lightDirection, view);
+	vec3 result = calcLight(normal, lightDirection, view);
 
-		colorsOut = vec4(result, 1.0);
-	}
+	colorsOut = vec4(result, 1.0);
 }
 
 vec4 mixTextures(float low, float high, float max, float blendFactor, float blendRange){
@@ -61,22 +55,25 @@ vec4 mixTextures(float low, float high, float max, float blendFactor, float blen
 	vec4 rockColour = texture(u_texture3,	uv);
 	vec4 snowColour = texture(u_texture4,	uv);
 
+	result = snowColour;
+
 	if(height < low){ result = sandColour;}
+
 	if (height > low - blendRange && height < low + blendRange) {
 		result = mix(sandColour, grassColour, blendFactor);
 	}
 
 	if(height > low && height < high){ result = grassColour;}
+
 	if (height > high - blendRange && height < high + blendRange) {
 		result = mix(grassColour, rockColour, blendFactor);
 	}
 
 	if(height > high && height < max){ result = rockColour;}
+
 	if (height > max - blendRange && height < max + blendRange) {
 		result = mix(rockColour, snowColour, blendFactor);
 	}
-
-	if(height > max){ result = snowColour;}
 
 	return result;
 }
