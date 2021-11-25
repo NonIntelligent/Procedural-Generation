@@ -1,8 +1,8 @@
 #include "Generators/GenerateAlgorithms.h"
 
 #include <glm/vec3.hpp>
-#include <noise/noise.h>
 #include <glm/geometric.hpp>
+#include <glm/gtc/noise.hpp>
 
 #include <cstdlib>
 #include <iostream>
@@ -131,18 +131,25 @@ void Generate::DiamondSquare(float** arr, int size, const int maxSize, float ran
 
 void Generate::PerlinNoise(float** arr, int maxSize, int octaves, float h, float minHeight, float maxHeight) {
 
-	for (int x = 0; x < maxSize; x++) {
-		for (int z = 0; z < maxSize; z++) {
-			double nx = x / maxSize - 0.5, nz = z / maxSize - 0.5;
+	float amplitude = 1.f;
+	float scalar = 1.f;
+	float divideSum = 0.f;
+	float result = 0.f, outputHeight = 0.f;
+	float delta = maxHeight - minHeight;
 
-			float amplitude = 1.f;
-			float scalar = 1.f;
-			float divideSum = 0.f;
-			float result = 0.f, outputHeight = 0.f;
+	for (int z = 0; z < maxSize; z++) {
+		for (int x = 0; x < maxSize; x++) {
+			double nx = x / (double) maxSize - 0.5, nz = z / (double) maxSize - 0.5;
+
+			amplitude = 1.f;
+			scalar = 1.f;
+			divideSum = 0.f;
+			result = 0.f;
+			outputHeight = 0.f;
 
 			// Combine multiple frequencies
 			for (int i = 0; i < octaves; i++) {
-				result += amplitude * scalar * nx * scalar* nz * 0.0;
+				result += amplitude * glm::perlin(glm::vec2{scalar * nx, scalar * nz});
 				divideSum += amplitude;
 				amplitude *= 0.5f;
 				scalar *= 2.f;
@@ -152,10 +159,13 @@ void Generate::PerlinNoise(float** arr, int maxSize, int octaves, float h, float
 			result /= divideSum;
 
 			// flatten or stretch valleys
-			result = powf(result, h);
-			result = roundf(result * 512.f) / 512.f;
-
-			float delta = maxHeight - minHeight;
+			if (result < 0.0) {
+				result = glm::pow(result, (int)h);
+			}
+			else {
+				result = glm::pow(result, h);
+			}
+			
 			outputHeight = delta * result + minHeight;
 
 			arr[x][z] = outputHeight;

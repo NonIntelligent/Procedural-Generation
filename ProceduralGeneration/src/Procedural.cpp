@@ -235,7 +235,7 @@ bool Procedural::init() {
 
 	glEnable(GL_CLIP_DISTANCE0);
 
-	//glEnable(GL_CULL_FACE);
+	glEnable(GL_CULL_FACE);
 
 	glEnable(GL_PRIMITIVE_RESTART);
 	glPrimitiveRestartIndex(0xffffffff);
@@ -489,6 +489,8 @@ void Procedural::renderTrees() {
 }
 
 void Procedural::renderGrass() {
+	if (!grass.initialised) return;
+
 	Shader* current = nullptr;
 
 	auto result = shaders.find("grass");

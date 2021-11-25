@@ -174,9 +174,6 @@ void Terrain::init(glm::vec4 initialHeight, glm::vec3 heightBounds, float random
 
 	Generate::DiamondSquare(terrainMap, MAP_SIZE, MAP_SIZE, randomRange, roughness);
 
-	//////////////////////////////////////////////////////////
-
-
 	// Initialise vertex array with values from terrain map
 	int i = 0;
 

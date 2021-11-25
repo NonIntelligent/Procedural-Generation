@@ -179,6 +179,8 @@ void Grass::init(glm::mat4 terrainModelMatrix, int clusterCount, unsigned int se
 
 	va->unBind();
 	ib->unBind();
+
+	initialised = true;
 }
 
 void Grass::cullGrass(glm::vec3 currentPosition, float distanceLimit, int instanceLimit) {
@@ -258,6 +260,7 @@ std::string Grass::getShaderName() {
 }
 
 void Grass::setClipPlane(glm::vec4 plane) {
+	if (!initialised) return;
 	int size = uniforms.size();
 
 	uniforms[size - 2].dataMatrix[0] = plane;

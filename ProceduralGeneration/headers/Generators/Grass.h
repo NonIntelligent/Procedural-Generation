@@ -31,6 +31,8 @@ public:
 
 	float windTime = 0.f;
 
+	bool initialised = false;
+
 	Grass() { };
 	Grass(VertexTexture* points, int width, float minHeight, float maxHeight);
 	~Grass() { };
